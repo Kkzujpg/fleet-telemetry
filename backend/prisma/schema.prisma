@@ -1,0 +1,75 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  OPERATOR
+  VIEWER
+}
+
+model User {
+  id           String        @id @default(uuid())
+  email        String        @unique
+  passwordHash String
+  role         Role
+  createdAt    DateTime      @default(now())
+  refreshTokens RefreshToken[]
+}
+
+model Device {
+  id             String             @id @default(uuid())
+  publicId       String             @unique
+  plate          String
+  tankCapacityL  Float
+  lastSeenAt     DateTime?
+  createdAt      DateTime           @default(now())
+  readings       TelemetryReading[]
+  alerts         Alert[]
+}
+
+model TelemetryReading {
+  id           String   @id @default(uuid())
+  deviceId     String
+  device       Device   @relation(fields: [deviceId], references: [id])
+  recordedAt   DateTime
+  lat          Float
+  lng          Float
+  speedKph     Float
+  fuelLiters   Float
+  engineTempC  Float
+
+  @@index([deviceId, recordedAt])
+}
+
+model Alert {
+  id                String    @id @default(uuid())
+  deviceId          String
+  device            Device    @relation(fields: [deviceId], references: [id])
+  type              String
+  severity          String
+  predictedEmptyAt  DateTime?
+  minutesRemaining  Int?
+  acknowledgedAt    DateTime?
+  createdAt         DateTime  @default(now())
+
+  @@index([deviceId])
+}
+
+model RefreshToken {
+  id            String         @id @default(uuid())
+  userId        String
+  user          User           @relation(fields: [userId], references: [id])
+  tokenHash     String         @unique
+  expiresAt     DateTime
+  revokedAt     DateTime?
+  replacedById  String?        @unique
+  replacedBy    RefreshToken?  @relation("RefreshTokenChain", fields: [replacedById], references: [id])
+  replaces      RefreshToken?  @relation("RefreshTokenChain")
+  createdAt     DateTime       @default(now())
+}
