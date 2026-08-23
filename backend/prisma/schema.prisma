@@ -13,63 +13,102 @@ enum Role {
   VIEWER
 }
 
+enum DeviceStatus {
+  ACTIVE
+  INACTIVE
+  MAINTENANCE
+}
+
 model User {
-  id           String        @id @default(uuid())
-  email        String        @unique
-  passwordHash String
-  role         Role
-  createdAt    DateTime      @default(now())
-  refreshTokens RefreshToken[]
+  id                 String         @id @default(uuid())
+  email              String         @unique
+  passwordHash       String
+  role               Role
+  createdAt          DateTime       @default(now())
+  refreshTokens      RefreshToken[]
+  acknowledgedAlerts Alert[]        @relation("AlertAcknowledgedBy")
+  pushTokens         PushToken[]
 }
 
 model Device {
-  id             String             @id @default(uuid())
-  publicId       String             @unique
-  plate          String
-  tankCapacityL  Float
-  lastSeenAt     DateTime?
-  createdAt      DateTime           @default(now())
-  readings       TelemetryReading[]
-  alerts         Alert[]
+  id            String             @id @default(uuid())
+  publicId      String             @unique
+  plate         String
+  tankCapacityL Float
+  status        DeviceStatus       @default(ACTIVE)
+  lastSeenAt    DateTime?
+  createdAt     DateTime           @default(now())
+  readings      TelemetryReading[]
+  alerts        Alert[]
 }
 
 model TelemetryReading {
-  id           String   @id @default(uuid())
-  deviceId     String
-  device       Device   @relation(fields: [deviceId], references: [id])
-  recordedAt   DateTime
-  lat          Float
-  lng          Float
-  speedKph     Float
-  fuelLiters   Float
-  engineTempC  Float
+  id             String   @id @default(uuid())
+  deviceId       String
+  device         Device   @relation(fields: [deviceId], references: [id])
+  recordedAt     DateTime
+  lat            Float
+  lng            Float
+  speedKph       Float
+  fuelLevelPct   Float
+  fuelLiters     Float
+  engineTempC    Float
+  odometerKm     Float
+  ingestedAt     DateTime @default(now())
+  idempotencyKey String?
 
-  @@index([deviceId, recordedAt])
+  // idempotencia gratis: reintentos del outbox reenvían la misma lectura sin duplicarla
+  @@unique([deviceId, recordedAt])
+  // el header Idempotency-Key es el segundo guardarraíl: mismo reintento,
+  // aunque el cliente lograra mandar un recordedAt distinto por error
+  @@unique([deviceId, idempotencyKey])
+  // "últimas N lecturas de este vehículo" sin paso de ordenamiento
+  @@index([deviceId, recordedAt(sort: Desc)])
+  // reconciliación tras reconexión: "todo lo ingestado después de este cursor"
+  @@index([ingestedAt])
 }
 
 model Alert {
-  id                String    @id @default(uuid())
-  deviceId          String
-  device            Device    @relation(fields: [deviceId], references: [id])
-  type              String
-  severity          String
-  predictedEmptyAt  DateTime?
-  minutesRemaining  Int?
-  acknowledgedAt    DateTime?
-  createdAt         DateTime  @default(now())
+  id                  String    @id @default(uuid())
+  deviceId            String
+  device              Device    @relation(fields: [deviceId], references: [id])
+  type                String
+  severity            String
+  predictedEmptyAt    DateTime?
+  distanceRemainingKm Int?
+  createdAt           DateTime  @default(now())
+  acknowledgedAt      DateTime?
+  acknowledgedBy      String?
+  acknowledgedByUser  User?     @relation("AlertAcknowledgedBy", fields: [acknowledgedBy], references: [id])
+  // guarda el mismo Idempotency-Key que llegó en el POST /ack que ganó la
+  // carrera, para que un reintento de ESE mismo cliente devuelva 200 en vez
+  // de 409 (distingue "reintento propio" de "otro admin llegó primero")
+  ackIdempotencyKey   String?
 
   @@index([deviceId])
 }
 
+model PushToken {
+  id             String   @id @default(uuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id])
+  expoPushToken  String   @unique
+  platform       String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([userId])
+}
+
 model RefreshToken {
-  id            String         @id @default(uuid())
-  userId        String
-  user          User           @relation(fields: [userId], references: [id])
-  tokenHash     String         @unique
-  expiresAt     DateTime
-  revokedAt     DateTime?
-  replacedById  String?        @unique
-  replacedBy    RefreshToken?  @relation("RefreshTokenChain", fields: [replacedById], references: [id])
-  replaces      RefreshToken?  @relation("RefreshTokenChain")
-  createdAt     DateTime       @default(now())
+  id           String        @id @default(uuid())
+  userId       String
+  user         User          @relation(fields: [userId], references: [id])
+  tokenHash    String        @unique
+  expiresAt    DateTime
+  revokedAt    DateTime?
+  replacedById String?       @unique
+  replacedBy   RefreshToken? @relation("RefreshTokenChain", fields: [replacedById], references: [id])
+  replaces     RefreshToken? @relation("RefreshTokenChain")
+  createdAt    DateTime      @default(now())
 }
