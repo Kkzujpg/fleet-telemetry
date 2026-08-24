@@ -73,6 +73,8 @@ npm test
 
 Corre con Jest tanto los tests del backend (`backend/test/**`) como la lógica de dominio en `shared/**/*.test.ts` (cálculo de combustible, JWT, masking, refresh tokens, rate limiter, etc.) — ambos están cableados en `backend/jest.config.js` (`roots` incluye `../shared`). Un archivo suelto: `npx jest path/to/file.spec.ts`.
 
+`npm run build` corre `npm test` automático antes de compilar (`prebuild` en `backend/package.json`) — un build con tests rotos no llega a compilar. Los `.e2e.spec.ts` levantan el `AppModule` completo contra Postgres real, así que **Postgres debe estar arriba** (paso 1, `docker-compose up -d`) antes de `npm test` o `npm run build`; si no, esos specs fallan por timeout en `beforeAll`, no por un bug de código.
+
 ## 3. Web (Next.js)
 
 En otra terminal:
@@ -122,6 +124,5 @@ npm test
 
 ## Limitaciones conocidas / pendientes
 
-- `DESIGN.md` está pendiente de completar (elección de stack y trade-offs).
 - `web/` no tiene tests automatizados todavía; `mobile/` y `shared/` sí.
 - El cálculo de autonomía usa una ventana de distancia (km) en vez de una conversión directa a horas como métrica primaria; `predictedEmptyAt` es la proyección a timestamp derivada de esa misma ventana (ver `shared/fuel.ts`).
