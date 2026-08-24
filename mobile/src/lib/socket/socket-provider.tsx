@@ -23,15 +23,16 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
     }
 
     const socket: Socket = io(BACKEND_WS_URL, {
-      // socket.io re-invokes this before every (re)connection attempt, so a
-      // token that expired since the last attempt gets refreshed first - the
-      // access token is what both HTTP and the socket handshake authenticate with.
+      // socket.io reinvoca esto antes de cada intento de (re)conexión, así
+      // que un token que expiró desde el último intento se refresca primero -
+      // el access token es con lo que se autentican tanto HTTP como el
+      // handshake del socket.
       auth: async (cb) => {
         try {
           await apiFetch('/auth/me');
         } catch {
-          // Refresh failed (e.g. logged out elsewhere) - connect with whatever
-          // we have; the gateway will reject and stop reconnecting on 401.
+          // El refresh falló (ej: se cerró sesión en otro lugar) - se conecta
+          // con lo que haya; el gateway rechazará y dejará de reconectar ante un 401.
         }
         cb({ token: getAccessToken() });
       },

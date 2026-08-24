@@ -1,6 +1,7 @@
-// expo-device is read lazily (inside registerPushToken's body), so mutating
-// this shared object between tests is safe - unlike expo-notifications below,
-// nothing here runs at module-evaluation time.
+// expo-device se lee de forma perezosa (dentro del cuerpo de
+// registerPushToken), así que mutar este objeto compartido entre tests es
+// seguro - a diferencia de expo-notifications más abajo, nada acá corre en
+// tiempo de evaluación del módulo.
 import { Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import { notifyAlert, registerPushToken } from './push';
@@ -13,11 +14,12 @@ jest.mock('expo-device', () => ({
   },
 }));
 
-// push.ts calls Notifications.setNotificationHandler at module top level, so
-// this factory must be fully self-contained (no outer variable reference) -
-// referencing an outer const here would read as undefined, since jest.mock
-// factories run when the module is first required, which - because imports
-// are hoisted - happens before any later `const` in this file is initialized.
+// push.ts llama a Notifications.setNotificationHandler en el nivel superior
+// del módulo, así que esta factory debe ser completamente autocontenida (sin
+// referencias a variables externas) - referenciar un const externo acá se
+// leería como undefined, ya que las factories de jest.mock corren cuando el
+// módulo se requiere por primera vez, lo cual - por el hoisting de imports -
+// sucede antes de que se inicialice cualquier `const` posterior de este archivo.
 jest.mock('expo-notifications', () => ({
   setNotificationHandler: jest.fn(),
   setNotificationChannelAsync: jest.fn(),
@@ -36,7 +38,7 @@ const getPermissionsAsync = Notifications.getPermissionsAsync as jest.Mock;
 const requestPermissionsAsync = Notifications.requestPermissionsAsync as jest.Mock;
 const getExpoPushTokenAsync = Notifications.getExpoPushTokenAsync as jest.Mock;
 const scheduleNotificationAsync = Notifications.scheduleNotificationAsync as jest.Mock;
-// eslint-disable-next-line @typescript-eslint/no-require-imports -- mocked module, no type-safe import needed
+// eslint-disable-next-line @typescript-eslint/no-require-imports -- módulo mockeado, no se necesita import con tipos
 const readCache = require('../offline/offline').readCache as jest.Mock;
 
 beforeEach(() => {
@@ -46,7 +48,7 @@ beforeEach(() => {
 });
 
 describe('registerPushToken', () => {
-  test('skips on a simulator/emulator', async () => {
+  test('se salta en un simulador/emulador', async () => {
     mockDeviceState.isDevice = false;
     const apiFetch = jest.fn();
 
@@ -56,7 +58,7 @@ describe('registerPushToken', () => {
     expect(getPermissionsAsync).not.toHaveBeenCalled();
   });
 
-  test('requests permission when not already granted, then registers', async () => {
+  test('pide permiso si aún no fue otorgado, y luego registra', async () => {
     getPermissionsAsync.mockResolvedValue({ status: 'undetermined' });
     requestPermissionsAsync.mockResolvedValue({ status: 'granted' });
     getExpoPushTokenAsync.mockResolvedValue({ data: 'ExponentPushToken[abc]' });
@@ -75,7 +77,7 @@ describe('registerPushToken', () => {
     );
   });
 
-  test('does not register when permission is denied', async () => {
+  test('no registra cuando el permiso es denegado', async () => {
     getPermissionsAsync.mockResolvedValue({ status: 'undetermined' });
     requestPermissionsAsync.mockResolvedValue({ status: 'denied' });
     const apiFetch = jest.fn();
@@ -86,7 +88,7 @@ describe('registerPushToken', () => {
     expect(getExpoPushTokenAsync).not.toHaveBeenCalled();
   });
 
-  test('registration silently no-ops if getExpoPushTokenAsync throws (e.g. Expo Go on Android)', async () => {
+  test('el registro no hace nada en silencio si getExpoPushTokenAsync lanza excepción (ej: Expo Go en Android)', async () => {
     getPermissionsAsync.mockResolvedValue({ status: 'granted' });
     getExpoPushTokenAsync.mockRejectedValue(new Error('no push in Expo Go'));
     const apiFetch = jest.fn();
@@ -97,7 +99,7 @@ describe('registerPushToken', () => {
 });
 
 describe('notifyAlert', () => {
-  test('schedules an immediate local notification with the alert data', async () => {
+  test('programa una notificación local inmediata con los datos de la alerta', async () => {
     await notifyAlert({
       id: 'alert-1',
       deviceId: 'device-1',
@@ -119,7 +121,7 @@ describe('notifyAlert', () => {
     });
   });
 
-  test('names the vehicle in the title when its plate is in the cached device list', async () => {
+  test('nombra al vehículo en el título cuando su placa está en la lista de devices cacheada', async () => {
     readCache.mockResolvedValue({ items: [{ id: 'device-1', plate: 'ABC123' }], nextCursor: null });
 
     await notifyAlert({

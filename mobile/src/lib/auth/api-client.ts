@@ -15,9 +15,10 @@ export class ApiError extends Error {
 export interface ApiClientOptions {
   getAccessToken: () => string | null;
   setAccessToken: (token: string | null) => void;
-  // Unlike web (httpOnly cookie, invisible to JS but sent automatically by
-  // the browser), mobile has no cookie jar: the refresh token has to be read
-  // from and written back to expo-secure-store by hand around every refresh.
+  // A diferencia de web (cookie httpOnly, invisible a JS pero enviada
+  // automáticamente por el navegador), mobile no tiene cookie jar: el
+  // refresh token hay que leerlo y volver a escribirlo a mano en
+  // expo-secure-store en cada refresh.
   getRefreshToken: () => Promise<string | null>;
   setRefreshToken: (token: string | null) => Promise<void>;
   onUnauthenticated: () => void;
@@ -29,10 +30,11 @@ interface RefreshResponseBody {
 }
 
 /**
- * Fetch wrapper: attaches the in-memory access token, and on a 401 refreshes
- * through POST /auth/mobile/refresh (body-based, see backend/src/auth/auth.controller.ts)
- * via a single-flight queue so N concurrent 401s trigger exactly one refresh,
- * then retries each request once with the new token.
+ * Wrapper de fetch: adjunta el access token en memoria, y ante un 401
+ * refresca vía POST /auth/mobile/refresh (basado en body, ver
+ * backend/src/auth/auth.controller.ts) a través de una cola single-flight
+ * para que N 401 concurrentes disparen exactamente un refresh, y luego
+ * reintenta cada request una vez con el token nuevo.
  */
 export function createApiClient({
   getAccessToken,
@@ -92,10 +94,11 @@ export function createApiClient({
     return res.json() as Promise<T>;
   }
 
-  // Exposed so SessionProvider's bootstrap (silent refresh on app launch) goes
-  // through the same single-flight queue as any 401-triggered refresh below -
-  // two independent refresh calls racing on the same stale stored token would
-  // trip the backend's reuse detection and revoke the whole session.
+  // Se expone para que el bootstrap de SessionProvider (refresh silencioso al
+  // lanzar la app) pase por la misma cola single-flight que cualquier
+  // refresh disparado por un 401 más abajo - dos llamadas de refresh
+  // independientes compitiendo por el mismo token stale guardado dispararían
+  // la detección de reuso del backend y revocarían toda la sesión.
   return { apiFetch, refresh: refreshOnce };
 }
 

@@ -4,8 +4,8 @@ import { StyleSheet, Text, View } from 'react-native';
 import { Fonts, Palette, Radii, Shadows, Spacing } from '@/constants/theme';
 import type { DeviceListItem } from '@/lib/types';
 
-// Same open vector tile style as web/components/map/FleetMap.tsx - no API key needed.
-const STYLE_URL = 'https://tiles.openfreemap.org/styles/liberty';
+// Mismo estilo de tiles vectoriales abierto que web/components/map/FleetMap.tsx - sin necesidad de API key.
+const STYLE_URL = 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json';
 
 const STATUS_COLOR: Record<DeviceListItem['connectivityStatus'], string> = {
   online: Palette.statusOnline,
@@ -21,9 +21,9 @@ function hasReading(device: DeviceListItem): device is LocatedDevice {
 
 export interface FleetMapProps {
   devices: DeviceListItem[];
-  /** When set (or when `devices` holds exactly one vehicle), the camera follows that vehicle's live position. */
+  /** Cuando está seteado (o cuando `devices` tiene exactamente un vehículo), la cámara sigue la posición en vivo de ese vehículo. */
   selectedDeviceId?: string | null;
-  /** Tapping a vehicle's callout calls this instead of just closing it - e.g. navigate to its detail screen. */
+  /** Tocar el callout de un vehículo llama a esto en vez de solo cerrarlo - ej: navegar a su pantalla de detalle. */
   onSelectDevice?: (deviceId: string) => void;
 }
 
@@ -32,10 +32,11 @@ export function FleetMap({ devices, selectedDeviceId = null, onSelectDevice }: F
   const flownForRef = useRef<string | null>(null);
   const flownToFleetRef = useRef(false);
   const [openId, setOpenId] = useState<string | null>(null);
-  // Camera commands issued before the native style finishes loading are
-  // silently dropped, not queued - gate every flyTo/easeTo on this instead of
-  // firing as soon as `located` arrives, or a fast device fetch racing a
-  // slower tile/style load leaves the camera stuck at its initial view.
+  // Los comandos de cámara emitidos antes de que el estilo nativo termine de
+  // cargar se descartan en silencio, no se encolan - se condiciona cada
+  // flyTo/easeTo a esto en vez de dispararlo apenas llega `located`, o un
+  // fetch de devices rápido compitiendo con una carga de tile/estilo más
+  // lenta deja la cámara atascada en su vista inicial.
   const [styleLoaded, setStyleLoaded] = useState(false);
 
   const located = useMemo(() => devices.filter(hasReading), [devices]);
@@ -44,9 +45,10 @@ export function FleetMap({ devices, selectedDeviceId = null, onSelectDevice }: F
   const tracked = soleDevice ?? located.find((d) => d.id === selectedDeviceId) ?? null;
   const trackedReadingKey = tracked?.latestReading.recordedAt ?? null;
 
-  // Single tracked vehicle (detail screen, or a selection on the fleet map):
-  // fly in the first time, then ease-follow on every later reading - mirrors
-  // web/components/map/FleetMap.tsx's flyTo-once/easeTo-after pattern.
+  // Un solo vehículo rastreado (pantalla de detalle, o una selección en el
+  // mapa de flota): flyTo la primera vez, luego ease-follow en cada lectura
+  // posterior - refleja el patrón flyTo-una-vez/easeTo-después de
+  // web/components/map/FleetMap.tsx.
   useEffect(() => {
     if (!tracked || !styleLoaded) {
       return;
@@ -61,9 +63,10 @@ export function FleetMap({ devices, selectedDeviceId = null, onSelectDevice }: F
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tracked?.id, trackedReadingKey, styleLoaded]);
 
-  // Whole-fleet view (no single tracked vehicle): center once on the fleet's
-  // centroid as soon as positions arrive, then leave the camera alone -
-  // recentering on every tick here would fight the user panning the map.
+  // Vista de flota completa (sin un solo vehículo rastreado): centra una vez
+  // en el centroide de la flota apenas llegan posiciones, y después deja la
+  // cámara en paz - re-centrar en cada tick acá pelearía con el usuario
+  // paneando el mapa.
   useEffect(() => {
     if (tracked || !styleLoaded || flownToFleetRef.current || located.length === 0) {
       return;
@@ -99,9 +102,10 @@ export function FleetMap({ devices, selectedDeviceId = null, onSelectDevice }: F
             lngLat={[device.latestReading.lng, device.latestReading.lat]}
             anchor="bottom"
             offset={[0, -16]}
-            // Tap handled on the Marker itself, not a nested Pressable - the
-            // native annotation view owns the hit test, and a child
-            // touchable's onPress isn't reliably forwarded through it.
+            // El tap se maneja en el propio Marker, no en un Pressable
+            // anidado - la vista nativa de anotación es dueña del hit test,
+            // y el onPress de un touchable hijo no se reenvía de forma
+            // confiable a través de ella.
             onPress={() => (onSelectDevice ? onSelectDevice(device.id) : setOpenId(null))}
           >
             <View style={styles.callout}>

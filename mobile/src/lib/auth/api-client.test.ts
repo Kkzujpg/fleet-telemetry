@@ -33,10 +33,10 @@ function buildClient(overrides?: { fetchImpl?: jest.Mock }) {
 }
 
 describe('createApiClient', () => {
-  test('attaches the access token as a bearer header', async () => {
+  test('adjunta el access token como header bearer', async () => {
     const fetchImpl = jest.fn().mockResolvedValue(jsonResponse(200, { ok: true }));
     const { client } = buildClient({ fetchImpl });
-    // seed an access token by forcing one refresh first
+    // siembra un access token forzando primero un refresh
     fetchImpl.mockResolvedValueOnce(
       jsonResponse(200, { accessToken: 'access-1', refreshToken: 'refresh-2' }),
     );
@@ -50,14 +50,14 @@ describe('createApiClient', () => {
     expect(call[1].headers.authorization).toBe('Bearer access-1');
   });
 
-  test('on a 401, refreshes once and retries the original request', async () => {
+  test('ante un 401, refresca una vez y reintenta el request original', async () => {
     const fetchImpl = jest.fn();
     const { client } = buildClient({ fetchImpl });
 
     fetchImpl
-      .mockResolvedValueOnce(jsonResponse(401, {})) // first attempt, expired token
+      .mockResolvedValueOnce(jsonResponse(401, {})) // primer intento, token expirado
       .mockResolvedValueOnce(jsonResponse(200, { accessToken: 'fresh', refreshToken: 'r2' })) // refresh
-      .mockResolvedValueOnce(jsonResponse(200, { data: 1 })); // retry
+      .mockResolvedValueOnce(jsonResponse(200, { data: 1 })); // reintento
 
     const result = await client.apiFetch('/devices');
 
@@ -67,7 +67,7 @@ describe('createApiClient', () => {
     expect(fetchImpl.mock.calls[2][1].headers.authorization).toBe('Bearer fresh');
   });
 
-  test('when there is no stored refresh token, fails fast and calls onUnauthenticated', async () => {
+  test('cuando no hay refresh token guardado, falla rápido y llama a onUnauthenticated', async () => {
     const fetchImpl = jest.fn().mockResolvedValue(jsonResponse(401, {}));
     let refreshToken: string | null = null;
     const onUnauthenticated = jest.fn();
@@ -85,17 +85,17 @@ describe('createApiClient', () => {
 
     await expect(client.apiFetch('/devices')).rejects.toThrow(ApiError);
     expect(onUnauthenticated).toHaveBeenCalledTimes(1);
-    // no network call for the refresh itself - only the doomed first attempt
+    // sin llamada de red para el refresh en sí - solo el primer intento condenado
     expect(fetchImpl).toHaveBeenCalledTimes(1);
   });
 
-  test('a failed refresh clears both tokens and calls onUnauthenticated', async () => {
+  test('un refresh fallido limpia ambos tokens y llama a onUnauthenticated', async () => {
     const fetchImpl = jest.fn();
     const { client, onUnauthenticated, getRefreshToken } = buildClient({ fetchImpl });
 
     fetchImpl
       .mockResolvedValueOnce(jsonResponse(401, {}))
-      .mockResolvedValueOnce(jsonResponse(401, {})); // refresh itself rejected (reuse detection)
+      .mockResolvedValueOnce(jsonResponse(401, {})); // el refresh en sí es rechazado (detección de reuso)
 
     await expect(client.apiFetch('/devices')).rejects.toThrow(ApiError);
     expect(onUnauthenticated).toHaveBeenCalledTimes(1);

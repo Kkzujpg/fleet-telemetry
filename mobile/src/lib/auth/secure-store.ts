@@ -18,6 +18,6 @@ export async function setStoredRefreshToken(token: string | null): Promise<void>
       await SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY);
     }
   } catch {
-    // Keychain/Keystore unavailable - session just won't survive an app restart.
+    // Keychain/Keystore no disponible - la sesión simplemente no sobrevive a un reinicio de la app.
   }
 }

@@ -9,10 +9,10 @@ import type { PositionBroadcastPayload } from '../../../../shared/contract';
 const CACHE_KEY = 'devices:list';
 
 /**
- * Same cache-first list as useDevices, plus live position merges via the
- * socket - for the map, where pull-to-refresh snapshots aren't enough and
- * markers need to move as readings arrive. Same merge logic as
- * web/components/devices/FleetView.tsx.
+ * Misma lista cache-first que useDevices, más el merge de posiciones en vivo
+ * vía el socket - para el mapa, donde los snapshots de pull-to-refresh no
+ * alcanzan y los markers necesitan moverse a medida que llegan lecturas.
+ * Misma lógica de merge que web/components/devices/FleetView.tsx.
  */
 export function useLiveDevices() {
   const { apiFetch } = useSession();
@@ -34,7 +34,7 @@ export function useLiveDevices() {
           await saveCache(CACHE_KEY, result);
         }
       } catch {
-        // offline or backend unreachable - keep showing the cached snapshot
+        // offline o backend inalcanzable - sigue mostrando el snapshot cacheado
       }
       if (!cancelled) {
         setLoading(false);
@@ -50,9 +50,10 @@ export function useLiveDevices() {
     setDevices((prev) => prev.map((d) => (d.id === deviceId ? applyPosition(d, payload) : d)));
   }, []);
 
-  // Dependency is the id set, not `devices` itself: a position tick replaces
-  // device objects (new refs) every ~second, and re-subscribing that often
-  // would spam SUBSCRIBE_DEVICE/UNSUBSCRIBE_DEVICE for no reason.
+  // La dependencia es el conjunto de ids, no `devices` en sí: cada tick de
+  // posición reemplaza los objetos device (nuevas referencias) cada ~1s, y
+  // resuscribirse tan seguido spamearía SUBSCRIBE_DEVICE/UNSUBSCRIBE_DEVICE
+  // sin motivo.
   const deviceIds = devices.map((d) => d.id).join(',');
   useEffect(() => {
     const unsubscribes = devices.map((d) => subscribeDevice(d.id, (payload) => handlePosition(d.id, payload)));

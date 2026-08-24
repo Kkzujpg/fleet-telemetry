@@ -27,10 +27,11 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
 
   const apiClient = useMemo(
     () =>
-      // accessTokenRef is only read/written inside these callbacks when
-      // createApiClient later invokes them (on a 401 or an explicit refresh)
-      // - never synchronously during this construction. Same ref-as-mutable-
-      // box pattern as web/lib/session/SessionProvider.tsx.
+      // accessTokenRef solo se lee/escribe dentro de estos callbacks cuando
+      // createApiClient los invoca después (en un 401 o un refresh
+      // explícito) - nunca de forma sincrónica durante esta construcción.
+      // Mismo patrón de ref-como-caja-mutable que
+      // web/lib/session/SessionProvider.tsx.
       // eslint-disable-next-line react-hooks/refs
       createApiClient({
         getAccessToken: () => accessTokenRef.current,
@@ -44,12 +45,13 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     [handleUnauthenticated],
   );
 
-  // Both the access token (in memory) and the refresh token (secure store,
-  // but only readable async) start out unknown on a cold app launch -
-  // bootstrap one silent refresh before anything else tries to fetch. Goes
-  // through apiClient.refresh (the same single-flight queue apiFetch uses on
-  // a 401), not a separate call - two independent refreshers racing on the
-  // same stale, single-use token would trip the backend's reuse detection.
+  // Tanto el access token (en memoria) como el refresh token (secure store,
+  // pero solo legible de forma async) empiezan desconocidos en un lanzamiento
+  // en frío de la app - se hace un refresh silencioso inicial antes de que
+  // cualquier otra cosa intente pedir datos. Pasa por apiClient.refresh (la
+  // misma cola single-flight que usa apiFetch en un 401), no una llamada
+  // separada - dos refreshers independientes compitiendo por el mismo token
+  // stale y de un solo uso dispararían la detección de reuso del backend.
   useEffect(() => {
     let cancelled = false;
 

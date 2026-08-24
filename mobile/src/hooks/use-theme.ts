@@ -1,6 +1,6 @@
 import { Palette } from '@/constants/theme';
 
-/** Single dark instrument-panel theme, same as web - no light variant to branch on. */
+/** Tema único oscuro tipo panel de instrumentos, igual que web - sin variante clara entre la cual ramificar. */
 export function useTheme() {
   return Palette;
 }

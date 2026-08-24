@@ -11,8 +11,9 @@ import { registerPushToken, notifyAlert } from '@/lib/push/push';
 import { flushAlertAcks } from '@/lib/alerts/flush';
 import { Palette } from '@/constants/theme';
 
-// App is dark-only (same "instrument-panel" direction as web, which forces
-// color-scheme: dark unconditionally) - no system-scheme branching here.
+// La app es solo-oscura (misma dirección "panel de instrumentos" que web,
+// que fuerza color-scheme: dark incondicionalmente) - sin ramificación por
+// esquema del sistema acá.
 const NAVIGATION_THEME = {
   ...DarkTheme,
   colors: {
@@ -27,7 +28,7 @@ const NAVIGATION_THEME = {
 
 SplashScreen.preventAutoHideAsync();
 
-/** Redirects between /login and /(tabs)/* based on session status - the single source of truth for which screens require auth. */
+/** Redirige entre /login y /(tabs)/* según el estado de sesión - la única fuente de verdad sobre qué pantallas requieren auth. */
 function AuthGate({ children }: { children: React.ReactNode }) {
   const { status } = useSession();
   const segments = useSegments();
@@ -35,17 +36,19 @@ function AuthGate({ children }: { children: React.ReactNode }) {
   const navigationState = useRootNavigationState();
 
   useEffect(() => {
-    // router.replace() silently no-ops if called before the root navigator's
-    // first render commits - wait for a navigation state key, not just a
-    // non-loading auth status, or a fast cold-start redirect gets dropped
-    // and the app is left stranded on expo-router's Unmatched Route screen.
+    // router.replace() no hace nada en silencio si se llama antes de que el
+    // primer render del navegador raíz haga commit - hay que esperar una key
+    // de estado de navegación, no solo un estado de auth ya no-loading, o un
+    // redirect de cold-start rápido se pierde y la app queda varada en la
+    // pantalla Unmatched Route de expo-router.
     if (status === 'loading' || !navigationState?.key) {
       return;
     }
-    // Keyed off the login screen, not "inside (tabs)" - the bare root path
-    // (no matching route) has segments[0] === undefined, which "inside
-    // (tabs)" never catches, leaving an unauthenticated cold start stuck on
-    // expo-router's Unmatched Route screen instead of redirecting to login.
+    // Se basa en la pantalla de login, no en "dentro de (tabs)" - el path
+    // raíz desnudo (sin ruta que matchee) tiene segments[0] === undefined,
+    // algo que "dentro de (tabs)" nunca captura, dejando un cold start no
+    // autenticado atascado en la pantalla Unmatched Route de expo-router en
+    // vez de redirigir al login.
     const onLoginScreen = segments[0] === 'login';
     if (status === 'unauthenticated' && !onLoginScreen) {
       router.replace('/login');
@@ -63,7 +66,7 @@ function AuthGate({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-/** Registers the push token and drains the alert-ack outbox once authenticated; turns live alerts into local notifications. */
+/** Registra el push token y vacía el outbox de acks de alerta una vez autenticado; convierte alertas en vivo en notificaciones locales. */
 function PushAndAlertsBridge() {
   const { status, apiFetch } = useSession();
   const { onAlert } = useSocket();

@@ -12,13 +12,13 @@ function severityTokens(severity: string) {
     : { fg: Palette.statusStale, bg: Palette.statusStaleSoft };
 }
 
-/** Docked strip of active alerts on top of the fleet list - mirrors web's AlertsPanel. ADMIN-only, same as web. */
+/** Strip anclado de alertas activas sobre la lista de flota - refleja el AlertsPanel de web. Solo ADMIN, igual que web. */
 export function AlertsStrip({ devices }: { devices: DeviceListItem[] }) {
   const { data, refresh } = useAlerts();
   const { pendingIds, handleAck } = useAlertAck(refresh);
   const plateByDeviceId = new Map(devices.map((d) => [d.id, d.plate]));
-  // Backend returns createdAt ascending - reverse for newest-first, same as
-  // the full alerts screen.
+  // El backend devuelve createdAt ascendente - se invierte para
+  // más-reciente-primero, igual que la pantalla completa de alertas.
   const active = (data?.items ?? [])
     .filter((a) => !a.acknowledgedAt)
     .reverse();

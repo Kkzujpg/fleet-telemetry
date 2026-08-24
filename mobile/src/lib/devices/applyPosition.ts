@@ -1,7 +1,7 @@
 import type { DeviceListItem } from '../types';
 import type { PositionBroadcastPayload } from '../../../../shared/contract';
 
-/** Merges a live `position` broadcast onto a cached/fetched device, same shape as web/components/devices/FleetView.tsx. */
+/** Combina un broadcast `position` en vivo sobre un device cacheado/pedido, misma forma que web/components/devices/FleetView.tsx. */
 export function applyPosition(device: DeviceListItem, payload: PositionBroadcastPayload): DeviceListItem {
   return {
     ...device,

@@ -5,10 +5,11 @@ const expoConfig = require("eslint-config-expo/flat");
 module.exports = defineConfig([
   expoConfig,
   {
-    // eslint-config-expo's JS-file override references a rule id that no
-    // longer exists in the installed @typescript-eslint version, which
-    // errors out on any plain .js file - metro.config.js is the only one
-    // here, so just exclude it rather than patch node_modules.
+    // El override para archivos .js de eslint-config-expo referencia un id
+    // de regla que ya no existe en la versión instalada de
+    // @typescript-eslint, lo que da error en cualquier .js plano -
+    // metro.config.js es el único acá, así que se excluye en vez de
+    // parchear node_modules.
     ignores: ["dist/*", "metro.config.js"],
   }
 ]);

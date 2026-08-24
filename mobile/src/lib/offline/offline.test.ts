@@ -1,6 +1,7 @@
-// Fakes expo-sqlite with a tiny in-memory engine that understands exactly the
-// queries offline.ts issues (no real SQL parser) - enough to exercise the
-// module's actual read/write behaviour rather than just asserting call shapes.
+// Simula expo-sqlite con un motor en memoria diminuto que entiende
+// exactamente las queries que emite offline.ts (sin parser SQL real) -
+// suficiente para ejercitar el comportamiento real de lectura/escritura del
+// módulo en vez de solo verificar la forma de las llamadas.
 import { enqueue, flushQueue, pendingCount, readCache, saveCache } from './offline';
 
 jest.mock('expo-sqlite', () => {
@@ -52,7 +53,7 @@ jest.mock('expo-sqlite', () => {
   };
 });
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports -- needs the mocked module's own __reset, not its ESM re-export
+// eslint-disable-next-line @typescript-eslint/no-require-imports -- necesita el __reset propio del módulo mockeado, no su re-export ESM
 const fakeSqlite = require('expo-sqlite') as { __reset: () => void };
 
 beforeEach(() => {
@@ -60,11 +61,11 @@ beforeEach(() => {
 });
 
 describe('offline cache', () => {
-  test('readCache returns null when nothing is stored', async () => {
+  test('readCache devuelve null cuando no hay nada guardado', async () => {
     await expect(readCache('devices:list')).resolves.toBeNull();
   });
 
-  test('saveCache then readCache round-trips arbitrary JSON', async () => {
+  test('saveCache seguido de readCache hace round-trip de JSON arbitrario', async () => {
     await saveCache('devices:list', { items: [{ id: '1' }], nextCursor: null });
     await expect(readCache('devices:list')).resolves.toEqual({
       items: [{ id: '1' }],
@@ -72,7 +73,7 @@ describe('offline cache', () => {
     });
   });
 
-  test('saveCache overwrites the previous value for the same key', async () => {
+  test('saveCache sobreescribe el valor previo de la misma key', async () => {
     await saveCache('devices:list', { v: 1 });
     await saveCache('devices:list', { v: 2 });
     await expect(readCache('devices:list')).resolves.toEqual({ v: 2 });
@@ -80,16 +81,16 @@ describe('offline cache', () => {
 });
 
 describe('offline outbox', () => {
-  test('pendingCount is 0 with an empty outbox', async () => {
+  test('pendingCount es 0 con un outbox vacío', async () => {
     await expect(pendingCount()).resolves.toBe(0);
   });
 
-  test('enqueue increments pendingCount', async () => {
+  test('enqueue incrementa pendingCount', async () => {
     await enqueue({ kind: 'alert:ack', payload: { alertId: 'a1' } });
     await expect(pendingCount()).resolves.toBe(1);
   });
 
-  test('flushQueue removes actions the handler accepts, in enqueue order', async () => {
+  test('flushQueue elimina las acciones que el handler acepta, en orden de encolado', async () => {
     await enqueue({ kind: 'alert:ack', payload: { alertId: 'a1' } });
     await enqueue({ kind: 'alert:ack', payload: { alertId: 'a2' } });
 
@@ -103,7 +104,7 @@ describe('offline outbox', () => {
     await expect(pendingCount()).resolves.toBe(0);
   });
 
-  test('flushQueue leaves rejected actions queued for the next flush', async () => {
+  test('flushQueue deja las acciones rechazadas encoladas para el próximo flush', async () => {
     await enqueue({ kind: 'alert:ack', payload: { alertId: 'fails' } });
     await enqueue({ kind: 'alert:ack', payload: { alertId: 'succeeds' } });
 
@@ -118,7 +119,7 @@ describe('offline outbox', () => {
     expect(remaining).toEqual(['fails']);
   });
 
-  test('a handler that throws leaves the action queued', async () => {
+  test('un handler que lanza excepción deja la acción encolada', async () => {
     await enqueue({ kind: 'alert:ack', payload: { alertId: 'boom' } });
 
     await flushQueue(async () => {

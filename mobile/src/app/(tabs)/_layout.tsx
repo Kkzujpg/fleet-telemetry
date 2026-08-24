@@ -34,8 +34,9 @@ export default function TabsLayout() {
         name="alerts"
         options={{
           title: 'Alertas',
-          // Hides the tab for non-ADMIN roles; alerts/index.tsx also redirects
-          // if this route is reached directly, since hiding a tab is only UI.
+          // Oculta la tab para roles no-ADMIN; alerts/index.tsx también
+          // redirige si se llega a esta ruta directamente, ya que ocultar
+          // una tab es solo UI.
           href: user?.role === 'ADMIN' ? undefined : null,
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons name={focused ? 'notifications' : 'notifications-outline'} size={size} color={color} />

@@ -2,10 +2,11 @@ import { Redirect } from 'expo-router';
 import { useSession } from '@/lib/auth/session-context';
 
 /**
- * The only screen the app can land on with no other route context (cold
- * start, deep link to "/"). Redirects declaratively instead of relying on
- * router.replace() from an effect, which can silently no-op if it fires
- * before the root navigator's first render commits.
+ * La única pantalla en la que la app puede aterrizar sin otro contexto de
+ * ruta (cold start, deep link a "/"). Redirige de forma declarativa en vez
+ * de depender de router.replace() desde un efecto, que puede no hacer nada
+ * en silencio si se dispara antes de que el primer render del navegador
+ * raíz haga commit.
  */
 export default function IndexScreen() {
   const { status } = useSession();

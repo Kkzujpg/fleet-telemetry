@@ -10,10 +10,10 @@ const STATUS_COLOR: Record<DeviceConnectivityStatus, string> = {
   offline: Palette.statusOffline,
 };
 
-/** Small status indicator; pulses for "online" the way web's dot-pulse keyframes do. */
+/** Indicador de estado pequeño; pulsa para "online" igual que los keyframes dot-pulse de web. */
 export function StatusDot({ status }: { status: DeviceConnectivityStatus }) {
-  // Lazy useState instead of useRef - keeps a stable Animated.Value without
-  // reading a ref during render (React Compiler flags that as unsafe).
+  // useState perezoso en vez de useRef - mantiene un Animated.Value estable
+  // sin leer un ref durante el render (el React Compiler marca eso como inseguro).
   const [pulse] = useState(() => new Animated.Value(0));
 
   useEffect(() => {

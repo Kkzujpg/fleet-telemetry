@@ -29,7 +29,7 @@ async function fetchHistoryBuckets(
   return apiFetch<RawHistoryBucket[]>(`/devices/${deviceId}/history?${params}`);
 }
 
-/** Same polling/error semantics as web/lib/devices/useDeviceHistory.ts, on top of the mobile apiFetch. */
+/** Misma semántica de polling/error que web/lib/devices/useDeviceHistory.ts, sobre el apiFetch de mobile. */
 export function useDeviceHistory(
   deviceId: string,
   range: HistoryRangeKey,
@@ -63,11 +63,11 @@ export function useDeviceHistory(
       }
     }
 
-    // Resets to "loading" the instant deviceId/range/attempt changes, before
-    // the async fetch below resolves - same pattern as
-    // web/lib/devices/useDeviceHistory.ts, whose UI depends on this firing
-    // synchronously so the spinner shows right away instead of the stale
-    // previous range's chart.
+    // Vuelve a "loading" en el instante en que cambia deviceId/range/attempt,
+    // antes de que resuelva el fetch async de abajo - mismo patrón que
+    // web/lib/devices/useDeviceHistory.ts, cuya UI depende de que esto se
+    // dispare de forma sincrónica para que el spinner aparezca de inmediato
+    // en vez del gráfico stale del rango anterior.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setStatus('loading');
     setError(null);

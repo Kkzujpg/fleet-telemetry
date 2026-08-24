@@ -31,10 +31,11 @@ interface GroupedAlert {
 }
 
 /**
- * The backend re-fires the same alert type every ~10min while a device stays
- * low on fuel (see ALERT_DEDUPE_MS in shared/fuel.ts), so activeAlerts can
- * hold several near-identical rows for one ongoing condition - collapse them
- * to one card per type instead of showing the same message repeated.
+ * El backend vuelve a disparar el mismo tipo de alerta cada ~10min mientras
+ * un device se mantiene bajo de combustible (ver ALERT_DEDUPE_MS en
+ * shared/fuel.ts), así que activeAlerts puede tener varias filas casi
+ * idénticas para una sola condición en curso - se colapsan en una card por
+ * tipo en vez de mostrar el mismo mensaje repetido.
  */
 function groupActiveAlerts(alerts: ActiveAlertView[]): GroupedAlert[] {
   const byType = new Map<string, ActiveAlertView[]>();
@@ -65,9 +66,10 @@ export default function FleetDetailScreen() {
   const { data, loading, error, refresh } = useDeviceDetail(id);
   const { subscribeDevice } = useSocket();
   const [live, setLive] = useState<DeviceDetail | null>(null);
-  // Resets the live overlay when navigating between vehicles - an in-render
-  // adjustment (React's sanctioned way to reset state on a prop change),
-  // not an effect: https://react.dev/learn/you-might-not-need-an-effect#resetting-all-state-when-a-prop-changes
+  // Resetea el overlay en vivo al navegar entre vehículos - un ajuste en
+  // render (la forma sancionada por React de resetear estado ante un cambio
+  // de prop), no un efecto:
+  // https://react.dev/learn/you-might-not-need-an-effect#resetting-all-state-when-a-prop-changes
   const [liveForId, setLiveForId] = useState(id);
   if (id !== liveForId) {
     setLiveForId(id);

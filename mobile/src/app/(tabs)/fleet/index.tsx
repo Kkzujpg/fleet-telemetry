@@ -10,7 +10,7 @@ import { OfflineBadge } from '@/components/ui/OfflineBadge';
 import { Palette, Shadows } from '@/constants/theme';
 import { useLiveDevices } from '@/lib/devices/useLiveDevices';
 
-/** Landing screen for the Flota tab - full-bleed map with floating controls, no native header. */
+/** Pantalla de aterrizaje de la tab Flota - mapa a sangre completa con controles flotantes, sin header nativo. */
 export default function FleetMapScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();

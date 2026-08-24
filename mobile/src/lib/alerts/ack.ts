@@ -10,11 +10,12 @@ export interface AckAlertResult {
 }
 
 /**
- * Acks an alert immediately if online. On any failure (offline, network
- * error, server error) the ack is queued in the outbox instead of thrown -
- * the caller can drain it later via flushAlertAcks against the same
- * idempotent endpoint (POST /alerts/:id/ack), so an ack made twice (once
- * queued, once retried) never double-applies.
+ * Reconoce una alerta de inmediato si hay conexión. Ante cualquier falla
+ * (offline, error de red, error de servidor) el ack se encola en el outbox
+ * en vez de lanzar excepción - el llamador puede vaciarlo después vía
+ * flushAlertAcks contra el mismo endpoint idempotente (POST
+ * /alerts/:id/ack), así que un ack hecho dos veces (una encolado, otra
+ * reintentado) nunca se aplica doble.
  */
 export async function ackAlert(apiFetch: ApiClient['apiFetch'], alertId: string): Promise<AckAlertResult> {
   const idempotencyKey = randomIdempotencyKey();

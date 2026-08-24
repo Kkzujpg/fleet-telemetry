@@ -1,16 +1,18 @@
 import { Buffer } from 'buffer';
 import { LogBox } from 'react-native';
 
-// Upstream data-quality warning from the openfreemap "liberty" style's own
-// line layer (a malformed geometry in a specific vector tile) - not
-// something our code can fix, and it doesn't affect rendering.
+// Advertencia de calidad de datos del proveedor, de la propia capa de líneas
+// del estilo "liberty" de openfreemap (una geometría mal formada en un tile
+// vectorial específico) - no es algo que nuestro código pueda arreglar, y no
+// afecta el renderizado.
 LogBox.ignoreLogs(['Invalid geometry in line layer']);
 
-// shared/cursor.ts uses node's Buffer for base64url-encoding pagination
-// cursors. RN has no such global, so polyfill it here, before expo-router's
-// entry (and anything it imports) gets a chance to run. `require`, not
-// `import`, for the entry line below - import statements are hoisted above
-// this assignment, which would run the polyfill too late.
+// shared/cursor.ts usa el Buffer de node para codificar en base64url los
+// cursores de paginación. RN no tiene ese global, así que se hace polyfill
+// acá, antes de que el entry de expo-router (y lo que este importe) tenga
+// chance de correr. `require`, no `import`, para la línea de entry de abajo -
+// las declaraciones import se hoistean por encima de esta asignación, lo que
+// correría el polyfill demasiado tarde.
 if (typeof (global as { Buffer?: unknown }).Buffer === 'undefined') {
   (global as { Buffer?: unknown }).Buffer = Buffer;
 }

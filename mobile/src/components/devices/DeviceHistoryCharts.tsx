@@ -10,13 +10,15 @@ import { useDeviceHistory } from '@/lib/devices/useDeviceHistory';
 const RANGE_LABELS: Record<HistoryRangeKey, string> = { '1h': '1 hora', '6h': '6 horas', '24h': '24 horas' };
 const RANGE_KEYS: HistoryRangeKey[] = ['1h', '6h', '24h'];
 const CHART_HEIGHT = 160;
-// Reserved space below the bars for the axis label row - the threshold line's
-// "bottom" offset has to clear this too, or it lands under the labels
-// instead of level with the bars' own 0-baseline.
+// Espacio reservado debajo de las barras para la fila de etiquetas del eje -
+// el offset "bottom" de la línea de umbral también tiene que despejar esto,
+// o cae debajo de las etiquetas en vez de a nivel del baseline 0 propio de
+// las barras.
 const AXIS_LABEL_HEIGHT = 18;
 
-// A View-based bar chart has no "connectNulls: false" gap concept - drop the
-// synthetic null midpoints toHistoryChartPoints inserts for recharts' gaps.
+// Un gráfico de barras basado en View no tiene el concepto de hueco
+// "connectNulls: false" - se descartan los puntos medios null sintéticos que
+// toHistoryChartPoints inserta para los huecos de recharts.
 function withoutGaps(points: HistoryChartPoint[]) {
   return points.filter((p) => p.fuelLiters !== null);
 }
@@ -25,8 +27,9 @@ function formatAxisTime(t: number): string {
   return new Date(t).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 
-// Labels on every bar would overlap at 1m/5m bucket density - thin them out
-// the way an auto axis would, keeping only ~5 evenly spaced ticks.
+// Etiquetas en cada barra se solaparían con densidad de bucket de 1m/5m - se
+// reducen como lo haría un eje automático, dejando solo ~5 marcas
+// equidistantes.
 function thinLabels(points: HistoryChartPoint[], keep = 5): string[] {
   const step = Math.max(1, Math.ceil(points.length / keep));
   return points.map((p, i) => (i % step === 0 || i === points.length - 1 ? formatAxisTime(p.t) : ''));

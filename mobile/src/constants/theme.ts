@@ -1,9 +1,10 @@
 /**
- * Design tokens ported from web/app/globals.css - same near-black
- * instrument-panel look, one indigo accent, status hues sharing the
- * accent's family. The web app is dark-only (`color-scheme: dark` is not
- * conditional there), so mobile is too: no light theme to keep in sync.
- * Hex values are the sRGB conversion of the source oklch() tokens.
+ * Design tokens portados desde web/app/globals.css - mismo look de panel de
+ * instrumentos casi negro, un acento índigo, tonos de estado compartiendo la
+ * familia del acento. La app web es solo-oscura (`color-scheme: dark` no es
+ * condicional ahí), así que mobile también: sin tema claro que mantener
+ * sincronizado. Los valores hex son la conversión a sRGB de los tokens
+ * oklch() de origen.
  */
 
 import { Platform } from 'react-native';
@@ -49,7 +50,7 @@ export const Radii = {
   pill: 999,
 } as const;
 
-/** RN shadow props (iOS shadow* + Android elevation), tuned for the dark ground. */
+/** Props de sombra de RN (shadow* de iOS + elevation de Android), ajustadas para el fondo oscuro. */
 export const Shadows = {
   sm: { shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.5, shadowRadius: 2, elevation: 2 },
   md: { shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.45, shadowRadius: 14, elevation: 6 },

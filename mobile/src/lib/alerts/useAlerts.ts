@@ -4,9 +4,10 @@ import { readCache, saveCache } from '../offline/offline';
 import type { ListAlertsResult } from '../types';
 
 const CACHE_KEY = 'alerts:list';
-// Alerts close server-side as fuel recovers (e.g. after a sim restart refills
-// the tank) - without a poll, the alerts strip/screen would only notice on
-// pull-to-refresh or a full remount.
+// Las alertas se cierran del lado del servidor cuando el combustible se
+// recupera (ej: tras reiniciar el simulador y rellenar el tanque) - sin un
+// poll, el strip/pantalla de alertas solo se enteraría con pull-to-refresh o
+// un remount completo.
 const POLL_MS = 5000;
 
 export function useAlerts() {
@@ -30,15 +31,16 @@ export function useAlerts() {
     }
   }, [apiFetch]);
 
-  // Silent background refresh - unlike `refresh`, a failed tick doesn't touch
-  // `refreshing` (no spinner) or `error` (keep showing the last good list).
+  // Refresh silencioso en segundo plano - a diferencia de `refresh`, un tick
+  // fallido no toca `refreshing` (sin spinner) ni `error` (sigue mostrando
+  // la última lista buena).
   const poll = useCallback(async () => {
     try {
       const result = await apiFetch<ListAlertsResult>('/alerts');
       setData(result);
       await saveCache(CACHE_KEY, result);
     } catch {
-      // offline or backend hiccup - next tick tries again
+      // offline o falla puntual del backend - el próximo tick lo reintenta
     }
   }, [apiFetch]);
 

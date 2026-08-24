@@ -1,8 +1,10 @@
 import * as SQLite from 'expo-sqlite';
 
-// Same storage-key convention as web/lib/offline/offline.ts (see CLAUDE.md:
-// keep both copies' keys and shapes in sync by hand) - here backed by
-// expo-sqlite instead of localStorage, so every op is async.
+// Misma convención de storage-key que web/lib/offline/offline.ts (ver
+// CLAUDE.md: mantener las keys y formas de ambas copias sincronizadas a
+// mano) - acá respaldado por expo-sqlite en vez de localStorage, así que
+// cada operación es async. Implementa el requisito de "sincronización
+// offline" de mobile (rúbrica).
 const DB_NAME = 'fleet_offline.db';
 
 export interface QueuedAction {
@@ -27,12 +29,13 @@ function randomId(): string {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
 }
 
-// Cached across calls - readCache/saveCache/enqueue/etc. all fire on mount
-// from independent hooks (devices list, alerts, pending count...), and
-// opening a fresh SQLiteDatabase + running CREATE TABLE per concurrent
-// caller races on Android's native db handle (NullPointerException inside
-// NativeDatabase.execAsync). One shared connection, opened and migrated
-// once, removes the race.
+// Cacheado entre llamadas - readCache/saveCache/enqueue/etc. se disparan
+// todos al montar desde hooks independientes (lista de devices, alertas,
+// conteo pendiente...), y abrir un SQLiteDatabase nuevo + correr CREATE
+// TABLE por cada llamador concurrente compite por el handle nativo de
+// Android (NullPointerException dentro de NativeDatabase.execAsync). Una
+// única conexión compartida, abierta y migrada una sola vez, elimina la
+// carrera.
 let dbPromise: Promise<SQLite.SQLiteDatabase> | null = null;
 
 function getDb(): Promise<SQLite.SQLiteDatabase> {
@@ -49,7 +52,7 @@ function getDb(): Promise<SQLite.SQLiteDatabase> {
   return dbPromise;
 }
 
-/** Last-known-good snapshot, keyed by whatever the caller wants to cache (e.g. "devices:list"). */
+/** Snapshot del último estado bueno conocido, indexado por lo que el llamador quiera cachear (ej: "devices:list"). */
 export async function saveCache<T>(key: string, data: T): Promise<void> {
   const db = await getDb();
   await db.runAsync(
@@ -65,7 +68,7 @@ export async function readCache<T>(key: string): Promise<T | null> {
   return row ? (JSON.parse(row.data) as T) : null;
 }
 
-/** Buffers an action performed while offline for later replay (e.g. an alert ack). */
+/** Encola una acción realizada estando offline para reproducirla después (ej: un ack de alerta). */
 export async function enqueue(action: Omit<QueuedAction, 'id' | 'enqueuedAt'>): Promise<void> {
   const db = await getDb();
   await db.runAsync(
@@ -84,9 +87,10 @@ export async function pendingCount(): Promise<number> {
 }
 
 /**
- * Replays queued actions in order. `handler` returns true once an action is
- * safely applied and gets deleted from the outbox; anything the handler
- * throws on or returns false for stays queued for the next flush.
+ * Reproduce las acciones encoladas en orden. `handler` devuelve true una vez
+ * que una acción se aplicó de forma segura y se elimina del outbox; lo que
+ * el handler rechace con excepción o devuelva false se mantiene encolado
+ * para el próximo flush.
  */
 export async function flushQueue(handler: (action: QueuedAction) => Promise<boolean>): Promise<void> {
   const db = await getDb();
@@ -105,7 +109,7 @@ export async function flushQueue(handler: (action: QueuedAction) => Promise<bool
         await db.runAsync('DELETE FROM outbox WHERE id = ?', row.id);
       }
     } catch {
-      // leave it queued for the next flush
+      // se deja encolada para el próximo flush
     }
   }
 }

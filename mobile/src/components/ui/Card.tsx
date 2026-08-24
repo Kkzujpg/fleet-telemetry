@@ -3,12 +3,12 @@ import { StyleSheet, View, type ViewProps } from 'react-native';
 import { Palette, Radii, Shadows } from '@/constants/theme';
 
 export type CardProps = ViewProps & {
-  /** Selected/pressed state - accent border + soft accent fill, mirrors web's device-card[data-selected]. */
+  /** Estado seleccionado/presionado - borde de acento + relleno de acento suave, refleja el device-card[data-selected] de web. */
   selected?: boolean;
   elevated?: boolean;
 };
 
-/** Glass-card surface: subtle border, radius, real shadow - the base unit of web's visual language. */
+/** Superficie tipo glass-card: borde sutil, radio, sombra real - la unidad base del lenguaje visual de web. */
 export function Card({ style, selected, elevated, ...rest }: CardProps) {
   return (
     <View

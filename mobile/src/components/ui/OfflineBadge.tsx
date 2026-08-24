@@ -3,7 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { Palette, Radii } from '@/constants/theme';
 import { useNetworkStatus } from '@/lib/network/useNetworkStatus';
 
-/** Header-right indicator, shown only while offline - mirrors web AppShell's "Sin conexión" badge. */
+/** Indicador a la derecha del header, mostrado solo estando offline - refleja el badge "Sin conexión" del AppShell de web. */
 export function OfflineBadge() {
   const isConnected = useNetworkStatus();
 

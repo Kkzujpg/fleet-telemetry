@@ -8,7 +8,7 @@ export interface PillProps {
   bg: string;
 }
 
-/** Rounded status/alert chip - same shape as web's alert pills and the severity badges. */
+/** Chip redondeado de estado/alerta - misma forma que los pills de alerta y los badges de severidad de web. */
 export function Pill({ label, fg, bg }: PillProps) {
   return (
     <View style={[styles.pill, { backgroundColor: bg }]}>

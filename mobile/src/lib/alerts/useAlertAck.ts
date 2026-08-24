@@ -2,7 +2,7 @@ import { useCallback, useState } from 'react';
 import { useSession } from '../auth/session-context';
 import { ackAlert } from './ack';
 
-/** Pending/queued ack state shared by the alerts screen and the fleet-screen alert strip. */
+/** Estado de ack pendiente/encolado, compartido entre la pantalla de alertas y el strip de alertas de la pantalla de flota. */
 export function useAlertAck(refresh: () => Promise<void>) {
   const { apiFetch } = useSession();
   const [pendingIds, setPendingIds] = useState<Set<string>>(new Set());

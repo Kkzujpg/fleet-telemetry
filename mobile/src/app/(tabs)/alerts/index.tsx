@@ -23,13 +23,15 @@ export default function AlertsScreen() {
   const { user } = useSession();
   const { data, loading, refreshing, error, refresh } = useAlerts();
   const { pendingIds, queuedIds, handleAck } = useAlertAck(refresh);
-  // The backend returns createdAt ascending (its cursor pagination depends
-  // on that direction) - newest-first for this screen is a display-only
-  // reversal, not a pagination order change.
+  // El backend devuelve createdAt ascendente (su paginación por cursor
+  // depende de esa dirección) - más-reciente-primero en esta pantalla es
+  // solo una inversión de visualización, no un cambio en el orden de
+  // paginación.
   const items = useMemo(() => [...(data?.items ?? [])].reverse(), [data]);
 
-  // Tab is hidden for non-ADMIN in (tabs)/_layout.tsx, but that only hides
-  // the tab bar entry - guard the route itself against direct navigation too.
+  // El tab está oculto para no-ADMIN en (tabs)/_layout.tsx, pero eso solo
+  // oculta la entrada de la tab bar - hay que proteger también la ruta en sí
+  // ante navegación directa.
   if (user && user.role !== 'ADMIN') {
     return <Redirect href="/(tabs)/fleet" />;
   }

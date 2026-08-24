@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import * as Network from 'expo-network';
 
-/** Polls connectivity every 10s - good enough for a "sync status" indicator, not a live subscription. */
+/** Hace poll de conectividad cada 10s - suficiente para un indicador de "estado de sincronización", no una suscripción en vivo. */
 export function useNetworkStatus(): boolean | null {
   const [isConnected, setIsConnected] = useState<boolean | null>(null);
 

@@ -7,8 +7,8 @@ import { alertSeverityLabel, alertTypeLabel } from '../alerts/labels';
 import { readCache } from '../offline/offline';
 import type { ListDevicesResult } from '../types';
 
-// Same cache key useDevices.ts writes to (CACHE_KEY there) - reading it here
-// lets a notification name the vehicle without a network round-trip.
+// Misma cache key en la que escribe useDevices.ts (CACHE_KEY ahí) - leerla
+// acá permite que una notificación nombre al vehículo sin un round-trip de red.
 const DEVICES_CACHE_KEY = 'devices:list';
 
 Notifications.setNotificationHandler({
@@ -22,29 +22,31 @@ Notifications.setNotificationHandler({
 
 const ALERTS_CHANNEL_ID = 'alerts';
 
-// Android 8+ ignores this priority-based popup behavior for any notification
-// on the default channel - without an explicit high-importance channel,
-// notifyAlert's notifications land silently in the tray instead of
-// heads-up-popping over whatever screen is open.
+// Android 8+ ignora este comportamiento de popup basado en prioridad para
+// cualquier notificación en el canal por defecto - sin un canal explícito de
+// importancia alta, las notificaciones de notifyAlert caen en silencio a la
+// bandeja en vez de aparecer como heads-up sobre la pantalla que esté abierta.
 if (Platform.OS === 'android') {
   void Notifications.setNotificationChannelAsync(ALERTS_CHANNEL_ID, {
     name: 'Alertas de flota',
     importance: Notifications.AndroidImportance.MAX,
-    // No `sound` here - a string other than undefined is treated as a custom
-    // sound filename that must be bundled via the config plugin. Omitting it
-    // uses the system's default notification sound instead.
+    // Sin `sound` acá - un string distinto de undefined se trata como un
+    // nombre de archivo de sonido personalizado que debe empaquetarse vía el
+    // config plugin. Omitirlo usa el sonido de notificación por defecto del
+    // sistema.
     vibrationPattern: [0, 250, 250, 250],
     lightColor: '#8798ff',
   });
 }
 
 /**
- * Registers this device's Expo push token against POST /push/register.
- * No-op on a simulator/emulator (no push capability) or without permission.
- * Remote push does not work in Expo Go on Android since SDK 53 -
- * getExpoPushTokenAsync throws there without a development build, which we
- * treat the same as "no token": registration silently skips, local
- * notifications (notifyAlert below) still work regardless.
+ * Registra el Expo push token de este device contra POST /push/register.
+ * No hace nada en un simulador/emulador (sin capacidad push) o sin permiso.
+ * El push remoto no funciona en Expo Go en Android desde el SDK 53 -
+ * getExpoPushTokenAsync lanza excepción ahí sin un development build, lo que
+ * tratamos igual que "sin token": el registro se salta en silencio, las
+ * notificaciones locales (notifyAlert más abajo) igual funcionan. Cumple el
+ * requisito de "soporte para notificaciones push de alertas" de mobile.
  */
 export async function registerPushToken(apiFetch: ApiClient['apiFetch']): Promise<void> {
   if (!Device.isDevice) {
@@ -76,12 +78,13 @@ export async function registerPushToken(apiFetch: ApiClient['apiFetch']): Promis
   });
 }
 
-/** Fires an immediate, heads-up local notification for an alert received live over the socket. */
+/** Dispara una notificación local inmediata, tipo heads-up, para una alerta recibida en vivo por el socket. */
 export async function notifyAlert(alert: AlertBroadcastPayload): Promise<void> {
-  // Several vehicles can cross the low-fuel threshold within the same
-  // minute (e.g. right after a sim restart, when every tank starts full and
-  // drains at the same rate) - without naming the vehicle, that batch reads
-  // as one alert firing repeatedly instead of several distinct ones.
+  // Varios vehículos pueden cruzar el umbral de combustible bajo en el mismo
+  // minuto (ej: justo después de reiniciar el simulador, cuando todos los
+  // tanques arrancan llenos y se drenan a la misma tasa) - sin nombrar el
+  // vehículo, ese lote se lee como una sola alerta disparándose repetidas
+  // veces en vez de varias distintas.
   const cachedDevices = await readCache<ListDevicesResult>(DEVICES_CACHE_KEY);
   const plate = cachedDevices?.items.find((d) => d.id === alert.deviceId)?.plate ?? null;
 
@@ -91,9 +94,10 @@ export async function notifyAlert(alert: AlertBroadcastPayload): Promise<void> {
       body: `${alertTypeLabel(alert.type)} · ${alertSeverityLabel(alert.severity)}`,
       data: { alertId: alert.id, deviceId: alert.deviceId },
     },
-    // channelId (not content.android.channelId) is what actually routes an
-    // Android notification onto the high-importance channel above - this is
-    // still an immediate trigger, just one that also names the channel.
+    // channelId (no content.android.channelId) es lo que realmente enruta
+    // una notificación de Android al canal de importancia alta de arriba -
+    // sigue siendo un trigger inmediato, solo que uno que también nombra el
+    // canal.
     trigger: Platform.OS === 'android' ? { channelId: ALERTS_CHANNEL_ID } : null,
   });
 }

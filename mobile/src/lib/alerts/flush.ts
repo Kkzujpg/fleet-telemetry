@@ -11,11 +11,11 @@ function isAlertAckPayload(payload: unknown): payload is AlertAckPayload {
   return typeof p === 'object' && p !== null && typeof p.alertId === 'string' && typeof p.idempotencyKey === 'string';
 }
 
-/** Drains queued alert acks against the backend. Leaves anything it can't apply queued for the next flush. */
+/** Vacía los acks de alerta encolados contra el backend. Deja encolado para el próximo flush lo que no pueda aplicar. */
 export async function flushAlertAcks(apiFetch: ApiClient['apiFetch']): Promise<void> {
   await flushQueue(async (action: QueuedAction) => {
     if (action.kind !== 'alert:ack' || !isAlertAckPayload(action.payload)) {
-      // Unknown/malformed action kind - drop it rather than retry forever.
+      // Kind de acción desconocido/mal formado - se descarta en vez de reintentar para siempre.
       return true;
     }
     try {

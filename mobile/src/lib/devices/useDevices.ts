@@ -4,13 +4,14 @@ import { readCache, saveCache } from '../offline/offline';
 import type { ListDevicesResult } from '../types';
 
 const CACHE_KEY = 'devices:list';
-// Fields like fuelLevelPct/connectivityStatus only change server-side (the
-// `position` socket event deliberately omits them, see applyPosition.ts) -
-// without a poll this list would only ever refresh on pull-to-refresh, going
-// stale the moment live telemetry starts moving.
+// Campos como fuelLevelPct/connectivityStatus solo cambian del lado del
+// servidor (el evento de socket `position` los omite a propósito, ver
+// applyPosition.ts) - sin un poll esta lista solo se refrescaría con
+// pull-to-refresh, quedando desactualizada apenas la telemetría en vivo
+// empieza a moverse.
 const POLL_MS = 5000;
 
-/** Cache-first device list: shows the last-known-good snapshot immediately, then revalidates and polls for freshness. */
+/** Lista de devices cache-first: muestra el último snapshot bueno conocido de inmediato, luego revalida y hace poll para mantenerse fresca. */
 export function useDevices() {
   const { apiFetch } = useSession();
   const [data, setData] = useState<ListDevicesResult | null>(null);
@@ -32,15 +33,16 @@ export function useDevices() {
     }
   }, [apiFetch]);
 
-  // Silent background refresh - unlike `refresh`, a failed tick doesn't touch
-  // `refreshing` (no spinner) or `error` (keep showing the last good list).
+  // Refresh silencioso en segundo plano - a diferencia de `refresh`, un tick
+  // fallido no toca `refreshing` (sin spinner) ni `error` (sigue mostrando
+  // la última lista buena).
   const poll = useCallback(async () => {
     try {
       const result = await apiFetch<ListDevicesResult>('/devices');
       setData(result);
       await saveCache(CACHE_KEY, result);
     } catch {
-      // offline or backend hiccup - next tick tries again
+      // offline o falla puntual del backend - el próximo tick lo reintenta
     }
   }, [apiFetch]);
 
