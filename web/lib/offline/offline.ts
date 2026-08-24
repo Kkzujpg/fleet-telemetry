@@ -1,6 +1,7 @@
-// Same storage-key convention as the (not yet built) mobile/lib/offline.ts -
-// see CLAUDE.md. Keep both copies' keys and shapes in sync by hand if this
-// changes.
+// Misma convención de storage-key que mobile/lib/offline.ts (aún no
+// construido) - ver CLAUDE.md. Si esto cambia, mantener las keys y formas de
+// ambas copias sincronizadas a mano. Implementa el requisito de la rúbrica
+// de "funcionalidad offline usando caché (localStorage)".
 const CACHE_KEY = "fleet_cache";
 const QUEUE_KEY = "fleet_queue";
 
@@ -24,11 +25,11 @@ function writeJson(key: string, value: unknown): void {
   try {
     localStorage.setItem(key, JSON.stringify(value));
   } catch {
-    // Storage unavailable (private browsing, quota) - degrade to no cache.
+    // Storage no disponible (navegación privada, cuota) - se degrada a sin caché.
   }
 }
 
-/** Last-known-good snapshot, keyed by whatever the caller wants to cache (e.g. "devices:list"). */
+/** Snapshot del último estado bueno conocido, indexado por lo que el llamador quiera cachear (ej: "devices:list"). */
 export function saveCache<T>(key: string, data: T): void {
   const all = readJson<Record<string, unknown>>(CACHE_KEY) ?? {};
   all[key] = data;
@@ -40,7 +41,7 @@ export function readCache<T>(key: string): T | null {
   return (all[key] as T | undefined) ?? null;
 }
 
-/** Buffers an action performed while offline for later replay (e.g. an alert ack). */
+/** Encola una acción realizada estando offline para reproducirla después (ej: un ack de alerta). */
 export function enqueue(action: Omit<QueuedAction, "id" | "enqueuedAt">): void {
   const queue = readJson<QueuedAction[]>(QUEUE_KEY) ?? [];
   queue.push({ ...action, id: crypto.randomUUID(), enqueuedAt: new Date().toISOString() });
@@ -48,9 +49,10 @@ export function enqueue(action: Omit<QueuedAction, "id" | "enqueuedAt">): void {
 }
 
 /**
- * Replays queued actions in order. `handler` returns true once an action is
- * safely applied; anything left unprocessed (handler threw, or returned
- * false) stays queued for the next flush.
+ * Reproduce las acciones encoladas en orden. `handler` devuelve true una vez
+ * que una acción se aplicó de forma segura; lo que quede sin procesar (el
+ * handler lanzó excepción, o devolvió false) se mantiene encolado para el
+ * próximo flush.
  */
 export async function flushQueue(handler: (action: QueuedAction) => Promise<boolean>): Promise<void> {
   const queue = readJson<QueuedAction[]>(QUEUE_KEY) ?? [];

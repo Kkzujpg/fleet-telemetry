@@ -1,6 +1,7 @@
-// Mirrors backend/src/devices/devices.service.ts and alerts.service.ts response
-// shapes. Not imported directly from backend/src (each app is deployed and
-// installed independently, see CLAUDE.md) - only shared/ crosses that boundary.
+// Refleja las formas de respuesta de backend/src/devices/devices.service.ts y
+// alerts.service.ts. No se importa directo desde backend/src (cada app se
+// despliega e instala de forma independiente, ver CLAUDE.md) - solo shared/
+// cruza esa frontera.
 
 import type { DeviceConnectivityStatus } from "../../shared/device-status";
 

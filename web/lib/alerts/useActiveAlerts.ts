@@ -10,10 +10,11 @@ import type { AlertView, ListAlertsResult } from "../types";
 import type { AlertBroadcastPayload } from "../../../shared/contract";
 
 /**
- * Active-alerts fetch + live WS push + offline-tolerant ack, shared by the
- * dashboard's alerts panel and the full /alerts page. The server only emits
- * alert events to the admin room (see SocketContextValue.onAlert), so this
- * is only meaningful for ADMIN sessions — callers gate rendering on role.
+ * Fetch de alertas activas + push en vivo por WS + ack tolerante a offline,
+ * compartido entre el panel de alertas del dashboard y la página /alerts
+ * completa. El servidor solo emite eventos de alerta al room de admin (ver
+ * SocketContextValue.onAlert), así que esto solo tiene sentido para sesiones
+ * ADMIN — los llamadores condicionan el render según el rol.
  */
 export function useActiveAlerts() {
   const { apiFetch } = useSession();
@@ -29,7 +30,7 @@ export function useActiveAlerts() {
         if (!cancelled) setAlerts(result.items);
       })
       .catch(() => {
-        // Offline or backend unreachable - keep whatever is already shown.
+        // Offline o backend inalcanzable - deja lo que ya se está mostrando.
       });
     return () => {
       cancelled = true;
@@ -74,7 +75,7 @@ export function useActiveAlerts() {
       setAlerts((prev) => prev.map((a) => (a.id === alertId ? updated : a)));
     } catch (error) {
       if (error instanceof ApiError && error.status === 409) {
-        // Someone else already acknowledged it - re-fetch to reconcile.
+        // Otro usuario ya la reconoció - se vuelve a pedir para reconciliar.
         const result = await apiFetch<ListAlertsResult>("/alerts?status=active");
         setAlerts(result.items);
       }

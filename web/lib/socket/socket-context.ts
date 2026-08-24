@@ -2,9 +2,9 @@ import { createContext, useContext } from "react";
 import type { AlertBroadcastPayload, PositionBroadcastPayload } from "../../../shared/contract";
 
 export interface SocketContextValue {
-  /** Subscribes to live position updates for one device; returns an unsubscribe cleanup. */
+  /** Se suscribe a actualizaciones de posición en vivo de un device; devuelve un cleanup para desuscribirse. */
   subscribeDevice: (deviceId: string, onPosition: (payload: PositionBroadcastPayload) => void) => () => void;
-  /** Admin-only: fires on every new alert (server only emits these to the admin room). */
+  /** Solo admin: se dispara en cada alerta nueva (el servidor solo las emite al room de admin). */
   onAlert: (callback: (alert: AlertBroadcastPayload) => void) => () => void;
 }
 

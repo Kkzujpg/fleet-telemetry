@@ -13,11 +13,12 @@ const STATUS_LABEL: Record<VehiclePopupData["connectivityStatus"], string> = {
 };
 
 /**
- * Builds the popup DOM by hand (textContent, never innerHTML) so a field is
- * displayed exactly as received - no escaping surprises, and no risk of a
- * value being interpreted as markup. In particular `publicId` is rendered as
- * given: this component does not know how to mask an id, on purpose - that
- * happens server-side (MaskingInterceptor) or not at all.
+ * Construye el DOM del popup a mano (textContent, nunca innerHTML) para que
+ * cada campo se muestre exactamente como llega - sin sorpresas de escapado,
+ * ni riesgo de que un valor se interprete como markup. En particular
+ * `publicId` se renderiza tal cual llega: este componente a propósito no
+ * sabe enmascarar un id - eso ocurre en el servidor (MaskingInterceptor) o
+ * no ocurre en absoluto.
  */
 export function buildPopupContent(data: VehiclePopupData): HTMLElement {
   const container = document.createElement("div");

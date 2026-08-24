@@ -8,10 +8,11 @@ import { lerpLatLng, type LatLng } from "../../lib/map/interpolate";
 import { buildPopupContent } from "./popup-content";
 import { bearing, createVehicleMarkerElement, hasMoved, type VehicleMarkerElement } from "./vehicle-marker";
 
-const STYLE_URL = "https://tiles.openfreemap.org/styles/liberty";
-// Matches the backend's position-broadcast throttle (see
-// backend/src/ws/telemetry.gateway.ts, POSITION_THROTTLE_MS) - updates arrive
-// roughly this often, so animating over the same span keeps motion continuous.
+const STYLE_URL = "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json";
+// Coincide con el throttle de broadcast de posición del backend (ver
+// backend/src/ws/telemetry.gateway.ts, POSITION_THROTTLE_MS) - las
+// actualizaciones llegan aproximadamente con esta frecuencia, así que animar
+// sobre el mismo lapso mantiene el movimiento continuo.
 const ANIMATION_DURATION_MS = 1000;
 
 const STATUS_COLOR_VAR: Record<DeviceListItem["connectivityStatus"], string> = {
@@ -52,18 +53,20 @@ function deviceFeatureProperties(device: DeviceListItem) {
 export function FleetMap({ devices, selectedDeviceId }: FleetMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
-  // State (not a ref) on purpose: the fly-to/popup effect below needs to
-  // re-run once loading flips true even when selectedDeviceId hasn't changed
-  // since mount - e.g. the device-detail page, which renders FleetMap with a
-  // selectedDeviceId already set before the map's async "load" event fires.
+  // State (no ref) a propósito: el efecto de fly-to/popup de abajo necesita
+  // volver a correr una vez que loading pasa a true aunque selectedDeviceId
+  // no haya cambiado desde el mount - ej: la página de detalle de device,
+  // que renderiza FleetMap con un selectedDeviceId ya seteado antes de que
+  // dispare el evento async "load" del mapa.
   const [loaded, setLoaded] = useState(false);
   const animatedRef = useRef(new Map<string, AnimatedPoint>());
   const devicesRef = useRef<DeviceListItem[]>(devices);
   const markersRef = useRef(new Map<string, TrackedMarker>());
   const selectedIdRef = useRef<string | null>(selectedDeviceId);
-  // Which selectedDeviceId the initial flyTo has already run for - lets the
-  // effect below tell "first time selecting this vehicle" (zoom in) apart
-  // from "same vehicle, newer reading" (pan only, keep the user's zoom).
+  // Para qué selectedDeviceId ya corrió el flyTo inicial - permite que el
+  // efecto de abajo distinga "primera vez seleccionando este vehículo"
+  // (hacer zoom) de "mismo vehículo, lectura más nueva" (solo pan,
+  // manteniendo el zoom del usuario).
   const flownForRef = useRef<string | null>(null);
   const popupRef = useRef<maplibregl.Popup | null>(null);
 
@@ -117,8 +120,9 @@ export function FleetMap({ devices, selectedDeviceId }: FleetMapProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Feed new positions into the animation targets, and create/remove marker
-  // elements to match, whenever the device set or their readings update.
+  // Alimenta las nuevas posiciones a los targets de animación, y
+  // crea/elimina elementos marker en consecuencia, cada vez que cambia el
+  // conjunto de devices o sus lecturas.
   useEffect(() => {
     devicesRef.current = devices;
     const map = mapRef.current;
@@ -169,13 +173,14 @@ export function FleetMap({ devices, selectedDeviceId }: FleetMapProps) {
     }
   }, [devices, loaded]);
 
-  // Fly to + popup the first time a vehicle is selected (zooms in). Single-
-  // vehicle callers (the device detail page) also get a camera that follows
-  // on every later reading via easeTo (pan only, keeps the zoom) - otherwise
-  // the one-shot flyTo below locks onto one snapshot and the vehicle just
-  // drives off-screen as new readings arrive. Fleet view (many devices)
-  // deliberately skips that follow-up: re-centering on every tick there
-  // would fight the user panning the map.
+  // Fly to + popup la primera vez que se selecciona un vehículo (hace zoom).
+  // Los llamadores de un solo vehículo (la página de detalle de device)
+  // también obtienen una cámara que sigue cada lectura posterior vía easeTo
+  // (solo pan, mantiene el zoom) - si no, el flyTo de una sola vez de abajo
+  // queda fijo en un snapshot y el vehículo se sale de pantalla a medida que
+  // llegan nuevas lecturas. La vista de flota (muchos devices) omite ese
+  // seguimiento a propósito: re-centrar en cada tick ahí pelearía con el
+  // usuario paneando el mapa.
   const soleDevice = devices.length === 1 ? devices[0] : null;
   const trackedDevice = soleDevice ?? devices.find((d) => d.id === selectedDeviceId) ?? null;
   const trackedReadingKey = trackedDevice?.latestReading?.recordedAt ?? null;
@@ -194,11 +199,11 @@ export function FleetMap({ devices, selectedDeviceId }: FleetMapProps) {
       flownForRef.current = selectedDeviceId;
       map.flyTo({ center: [reading.lng, reading.lat], zoom: 14 });
     } else if (soleDevice) {
-      // Explicit zoom, matching the flyTo above: a follow-up reading can
-      // arrive before that flyTo's animation finishes, and an easeTo with no
-      // zoom keeps whatever zoom was mid-flight at that instant - locking the
-      // camera at an interrupted, half-zoomed-out state instead of settling
-      // on 14 like the first jump intended.
+      // Zoom explícito, igual al flyTo de arriba: una lectura posterior puede
+      // llegar antes de que termine la animación de ese flyTo, y un easeTo
+      // sin zoom mantendría el zoom que estuviera a mitad de vuelo en ese
+      // instante - dejando la cámara en un estado interrumpido y a medio
+      // alejar en vez de asentarse en 14 como pretendía el salto inicial.
       map.easeTo({ center: [reading.lng, reading.lat], zoom: 14, duration: 500 });
     }
     showPopup(map, deviceFeatureProperties(device), { lat: reading.lat, lng: reading.lng });

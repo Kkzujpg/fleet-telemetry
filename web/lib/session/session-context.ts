@@ -7,7 +7,7 @@ export interface SessionContextValue {
   user: UserProfile | null;
   status: SessionStatus;
   apiFetch: <T>(path: string, init?: RequestInit) => Promise<T>;
-  /** Non-reactive accessor for the current in-memory access token (e.g. socket handshake auth). */
+  /** Accesor no reactivo para el access token actual en memoria (ej: auth del handshake del socket). */
   getAccessToken: () => string | null;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;

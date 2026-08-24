@@ -15,15 +15,16 @@ function severityTokens(severity: string) {
     : { fg: "var(--status-stale)", bg: "var(--status-stale-soft)" };
 }
 
-/** Docked on the main dashboard next to the fleet, not buried behind /alerts. */
+/** Anclado en el dashboard principal junto a la flota, no escondido detrás de /alerts. */
 export function AlertsPanel({ devices }: { devices: DeviceListItem[] }) {
   const { alerts, ackingId, acknowledge } = useActiveAlerts();
   const plateByDeviceId = new Map(devices.map((d) => [d.id, d.plate]));
   const active = alerts.filter((a) => !a.acknowledgedAt);
   const hasActive = active.length > 0;
 
-  // Always docked on the dashboard - a calm "all clear" state still confirms
-  // the panel is there, rather than disappearing the moment nothing is wrong.
+  // Siempre anclado en el dashboard - un estado tranquilo de "todo en orden"
+  // igual confirma que el panel está ahí, en vez de desaparecer apenas no
+  // hay nada mal.
   return (
     <div
       style={{

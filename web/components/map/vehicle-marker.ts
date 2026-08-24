@@ -1,7 +1,8 @@
-// Drawn vehicle glyph for the fleet map, replacing the plain circle layer.
-// A DOM element (maplibregl.Marker), not a rasterized symbol layer, so the
-// heading rotation and status color can update every animation frame via
-// cheap CSS custom properties instead of re-rendering a canvas icon.
+// Glifo de vehículo dibujado para el mapa de flota, reemplazando la capa de
+// círculo plano. Es un elemento DOM (maplibregl.Marker), no una capa de
+// símbolo rasterizada, para que la rotación de heading y el color de estado
+// se puedan actualizar en cada frame de animación vía custom properties CSS
+// baratas en vez de re-renderizar un ícono de canvas.
 const GLYPH_SVG = `<svg viewBox="0 0 24 24" width="26" height="26" class="vehicle-marker-glyph" aria-hidden="true">
   <path
     d="M12 2 20.6 20.2a0.9 0.9 0 0 1-1.24 1.18L12 17.9l-7.36 3.48a0.9 0.9 0 0 1-1.24-1.18L12 2Z"
@@ -19,7 +20,7 @@ export interface VehicleMarkerElement {
   setSelected: (selected: boolean) => void;
 }
 
-/** SVG markup above is static and authored here, never built from device data - safe to set via innerHTML once. */
+/** El markup SVG de arriba es estático y escrito acá, nunca construido desde datos del device - seguro de setear vía innerHTML una vez. */
 export function createVehicleMarkerElement(): VehicleMarkerElement {
   const el = document.createElement("div");
   el.className = "vehicle-marker";
@@ -48,7 +49,7 @@ function toDeg(rad: number): number {
   return (rad * 180) / Math.PI;
 }
 
-/** Compass bearing in degrees (0 = north, clockwise) from point a to point b. */
+/** Rumbo de brújula en grados (0 = norte, horario) del punto a al punto b. */
 export function bearing(a: { lat: number; lng: number }, b: { lat: number; lng: number }): number {
   const phi1 = toRad(a.lat);
   const phi2 = toRad(b.lat);
@@ -58,7 +59,7 @@ export function bearing(a: { lat: number; lng: number }, b: { lat: number; lng: 
   return (toDeg(Math.atan2(y, x)) + 360) % 360;
 }
 
-/** Below this, two points are close enough that a computed bearing is GPS noise, not real movement. */
+/** Por debajo de esto, dos puntos están tan cerca que un bearing calculado es ruido GPS, no movimiento real. */
 export const HEADING_MIN_DELTA_DEG = 0.00002;
 
 export function hasMoved(a: { lat: number; lng: number }, b: { lat: number; lng: number }): boolean {

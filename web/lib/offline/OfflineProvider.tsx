@@ -8,7 +8,7 @@ import { OfflineContext } from "./offline-context";
 
 async function replay(action: QueuedAction, apiFetch: ReturnType<typeof useSession>["apiFetch"]): Promise<boolean> {
   if (action.kind !== "alerts.ack") {
-    return true; // unknown action kind - drop rather than retry forever
+    return true; // kind de acción desconocido - se descarta en vez de reintentar para siempre
   }
   const { alertId, idempotencyKey } = action.payload as { alertId: string; idempotencyKey: string };
   try {
@@ -18,8 +18,9 @@ async function replay(action: QueuedAction, apiFetch: ReturnType<typeof useSessi
     });
     return true;
   } catch (error) {
-    // A conflict means it was already acknowledged (by this same idempotency
-    // key, elsewhere) - that's a successful outcome, not a reason to retry.
+    // Un conflicto significa que ya fue reconocida (con esta misma
+    // idempotency key, en otro lugar) - es un resultado exitoso, no motivo
+    // para reintentar.
     if (error instanceof ApiError && error.status === 409) {
       return true;
     }

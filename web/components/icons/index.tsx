@@ -1,6 +1,7 @@
-// Stroke-based icon set, 24px grid, 1.75 stroke, round joins - drawn once here
-// so every surface pulls from the same consistent glyph language instead of
-// unicode symbols or a third-party icon font.
+// Set de íconos basado en trazo, grilla de 24px, stroke 1.75, uniones
+// redondeadas - dibujado una vez acá para que toda superficie use el mismo
+// lenguaje de glifos consistente en vez de símbolos unicode o una fuente de
+// íconos de terceros.
 import type { SVGProps } from "react";
 
 function base(props: SVGProps<SVGSVGElement>) {

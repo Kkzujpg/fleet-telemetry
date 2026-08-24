@@ -31,12 +31,13 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     [handleUnauthenticated],
   );
 
-  // Access token lives only in memory, so a reload starts with none - bootstrap
-  // one silent refresh (the httpOnly cookie survives the reload) before the
-  // rest of the app tries to fetch anything. Goes through apiClient.refresh
-  // (the same single-flight queue apiFetch uses on a 401), not a separate
-  // fetch - two independent refreshers racing on the same stale, single-use
-  // cookie would trip the backend's reuse detection and kill the session.
+  // El access token vive solo en memoria, así que un reload empieza sin
+  // ninguno - se hace un refresh silencioso inicial (la cookie httpOnly
+  // sobrevive al reload) antes de que el resto de la app intente pedir
+  // cualquier cosa. Pasa por apiClient.refresh (la misma cola single-flight
+  // que usa apiFetch en un 401), no un fetch separado - dos refreshers
+  // independientes compitiendo por la misma cookie stale y de un solo uso
+  // dispararían la detección de reuso del backend y matarían la sesión.
   useEffect(() => {
     let cancelled = false;
 

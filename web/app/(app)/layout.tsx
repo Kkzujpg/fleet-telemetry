@@ -5,9 +5,10 @@ import { OfflineProvider } from "../../lib/offline/OfflineProvider";
 import { AppShell } from "../../components/shell/AppShell";
 
 export default function AppGroupLayout({ children }: { children: React.ReactNode }) {
-  // Cheap presence check only - no backend call, no token rotation. Real
-  // enforcement is the backend's guards; this just avoids rendering the
-  // authenticated shell for a browser that plainly has no session cookie.
+  // Solo un chequeo barato de presencia - sin llamada al backend, sin
+  // rotación de token. Quien realmente lo hace cumplir son los guards del
+  // backend; esto solo evita renderizar el shell autenticado para un
+  // navegador que claramente no tiene cookie de sesión.
   if (!cookies().has("refreshToken")) {
     redirect("/login");
   }

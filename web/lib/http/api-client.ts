@@ -19,10 +19,11 @@ export interface ApiClientOptions {
 }
 
 /**
- * Browser-only fetch wrapper: attaches the in-memory access token, and on a
- * 401 refreshes (via the same-origin Route Handler, which owns the httpOnly
- * refresh cookie) through a single-flight queue so N concurrent 401s trigger
- * exactly one refresh, then retries each request once with the new token.
+ * Wrapper de fetch solo para el navegador: adjunta el access token en
+ * memoria, y ante un 401 refresca (vía el Route Handler del mismo origen,
+ * dueño de la refresh cookie httpOnly) a través de una cola single-flight
+ * para que N 401 concurrentes disparen exactamente un refresh, y luego
+ * reintenta cada request una vez con el token nuevo.
  */
 export function createApiClient({ getAccessToken, setAccessToken, onUnauthenticated }: ApiClientOptions) {
   const refreshOnce = createRefreshQueue(async () => {
@@ -61,10 +62,11 @@ export function createApiClient({ getAccessToken, setAccessToken, onUnauthentica
     return res.json() as Promise<T>;
   }
 
-  // Exposed so SessionProvider's bootstrap (silent refresh on page load) goes
-  // through the same single-flight queue as any 401-triggered refresh below -
-  // two independent refresh calls racing on the same stale cookie would trip
-  // the backend's reuse detection and revoke the whole session.
+  // Se expone para que el bootstrap de SessionProvider (refresh silencioso al
+  // cargar la página) pase por la misma cola single-flight que cualquier
+  // refresh disparado por un 401 más abajo - dos llamadas de refresh
+  // independientes compitiendo por la misma cookie stale dispararían la
+  // detección de reuso del backend y revocarían toda la sesión.
   return { apiFetch, refresh: refreshOnce };
 }
 

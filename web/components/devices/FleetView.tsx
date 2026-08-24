@@ -33,11 +33,12 @@ function applyPosition(device: DeviceListItem, payload: PositionBroadcastPayload
 export function FleetView() {
   const { apiFetch, user } = useSession();
   const { subscribeDevice } = useSocket();
-  // Starts empty on both server and client renders so hydration matches -
-  // localStorage doesn't exist during SSR, so seeding this from readCache()
-  // in the initializer would make the client's first render (cache hit)
-  // disagree with the server-rendered markup (always empty). The cached
-  // snapshot is applied after mount instead, in the effect below.
+  // Empieza vacío tanto en el render de servidor como en el de cliente para
+  // que la hidratación coincida - localStorage no existe durante SSR, así
+  // que poblar esto desde readCache() en el inicializador haría que el
+  // primer render del cliente (con cache hit) no coincida con el markup
+  // renderizado en servidor (siempre vacío). El snapshot cacheado se aplica
+  // después del mount, en el efecto de abajo.
   const [devices, setDevices] = useState<DeviceListItem[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
@@ -55,7 +56,7 @@ export function FleetView() {
         saveCache(DEVICES_CACHE_KEY, result.items);
       })
       .catch(() => {
-        // Offline or backend unreachable - keep showing the cached snapshot.
+        // Offline o backend inalcanzable - sigue mostrando el snapshot cacheado.
       });
     return () => {
       cancelled = true;
@@ -66,9 +67,10 @@ export function FleetView() {
     setDevices((prev) => prev.map((d) => (d.id === deviceId ? applyPosition(d, payload) : d)));
   }, []);
 
-  // Dependency is the id set, not `devices` itself: a position tick replaces
-  // device objects (new refs) every ~second, and re-subscribing that often
-  // would spam SUBSCRIBE_DEVICE/UNSUBSCRIBE_DEVICE for no reason.
+  // La dependencia es el conjunto de ids, no `devices` en sí: cada tick de
+  // posición reemplaza los objetos device (nuevas referencias) cada ~1s, y
+  // resuscribirse tan seguido spamearía SUBSCRIBE_DEVICE/UNSUBSCRIBE_DEVICE
+  // sin motivo.
   const deviceIds = devices.map((d) => d.id).join(",");
   useEffect(() => {
     const unsubscribes = devices.map((d) => subscribeDevice(d.id, (payload) => handlePosition(d.id, payload)));
