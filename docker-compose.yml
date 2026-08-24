@@ -1,4 +1,4 @@
-services:
+﻿services:
   postgres:
     image: postgres:17
     restart: unless-stopped
@@ -16,5 +16,47 @@ services:
       timeout: 5s
       retries: 5
 
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/fleet_telemetry
+      JWT_SECRET: dev-secret-change-me
+      PORT: 3001
+      WEB_ORIGIN: http://localhost:3000
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./backend:/app/backend
+      - ./shared:/app/shared
+      - backend_node_modules:/app/backend/node_modules
+
+  web:
+    build:
+      context: .
+      dockerfile: web/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      # server-side (Route Handlers), corre dentro del contenedor -> usa nombre de servicio
+      BACKEND_HTTP_URL: http://backend:3001/api/v1
+      # browser-side, el navegador corre en el host -> usa localhost
+      NEXT_PUBLIC_BACKEND_HTTP_URL: http://localhost:3001/api/v1
+      NEXT_PUBLIC_BACKEND_WS_URL: http://localhost:3001
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./web:/app/web
+      - ./shared:/app/shared
+      - web_node_modules:/app/web/node_modules
+
 volumes:
   postgres_data:
+  backend_node_modules:
+  web_node_modules:
