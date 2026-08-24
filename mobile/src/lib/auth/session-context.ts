@@ -1,0 +1,23 @@
+import { createContext, useContext } from 'react';
+import type { UserProfile } from '../types';
+
+export type SessionStatus = 'loading' | 'authenticated' | 'unauthenticated';
+
+export interface SessionContextValue {
+  user: UserProfile | null;
+  status: SessionStatus;
+  apiFetch: <T>(path: string, init?: RequestInit) => Promise<T>;
+  getAccessToken: () => string | null;
+  login: (email: string, password: string) => Promise<void>;
+  logout: () => Promise<void>;
+}
+
+export const SessionContext = createContext<SessionContextValue | null>(null);
+
+export function useSession(): SessionContextValue {
+  const ctx = useContext(SessionContext);
+  if (!ctx) {
+    throw new Error('useSession must be used within SessionProvider');
+  }
+  return ctx;
+}
