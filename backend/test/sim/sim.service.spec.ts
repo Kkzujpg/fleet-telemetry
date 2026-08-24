@@ -1,6 +1,22 @@
 import { NotFoundException } from '@nestjs/common';
 import { SimService } from '../../src/sim/sim.service';
 import { PrismaService } from '../../src/prisma/prisma.service';
+import { RandomSource } from '../../../shared/gaussian-noise';
+
+// mulberry32: PRNG determinístico con seed - a diferencia de NEUTRAL_RANDOM
+// (siempre 0.5), produce una secuencia que varía como Math.random real, así
+// que un test que suma consumo a lo largo de 200 ticks sigue viendo la misma
+// dispersión que en producción, pero de forma reproducible bit a bit.
+function seededRandom(seed: number): RandomSource {
+  let a = seed;
+  return () => {
+    a |= 0;
+    a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
 
 const DEVICES = [
   { id: 'uuid-1', publicId: 'DEV-0001-AA11', plate: 'ABC123', tankCapacityL: 60, status: 'ACTIVE', lastSeenAt: null, createdAt: new Date() },
@@ -122,7 +138,11 @@ describe('SimService', () => {
 
   test('drains a full tank to a critical autonomy level within a few minutes of wall-clock time', async () => {
     const { service } = buildService();
-    await service.start();
+    // Semilla fija: con Math.random real este assert flakeaba (la velocidad
+    // sorteada en los primeros 2 ticks pesa ~29% del combustible total
+    // quemado, así que un sorteo bajo dejaba el tanque por encima del
+    // umbral). Esta semilla deja 4.09L, con margen cómodo bajo 10L.
+    await service.start(seededRandom(555));
 
     // 200 ticks * 3s = 10 minutos de tiempo real (fake timers de jest).
     for (let i = 0; i < 200; i++) {

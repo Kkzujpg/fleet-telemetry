@@ -3,6 +3,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { routeForIndex } from './routes';
 import { tickVehicle, VehicleSimState } from './vehicle-sim-engine';
 import { ConsumptionModelParams } from '../../../shared/fuel';
+import { RandomSource } from '../../../shared/gaussian-noise';
 
 const TICK_MS = 3000;
 const SIM_MINUTES_PER_TICK = 2;
@@ -47,13 +48,20 @@ export class SimService {
   // segundos" y lo leyera como una tasa de consumo absurda que dispara
   // alertas.
   private clockMs = 0;
+  // No inyectable por el constructor porque Nest resolvería este param como
+  // provider vía DI (falla al bootear, un tipo función no es un token
+  // registrado) - start() lo acepta en cambio, así los tests pueden fijar una
+  // fuente con seed para volver determinístico el drenaje de combustible sin
+  // tocar el wiring de producción, que sigue usando Math.random por defecto.
+  private randomSource: RandomSource = Math.random;
 
   constructor(private readonly prisma: PrismaService) {}
 
-  async start(): Promise<SimStatus> {
+  async start(randomSource: RandomSource = Math.random): Promise<SimStatus> {
     if (this.timer) {
       return this.status();
     }
+    this.randomSource = randomSource;
 
     const devices = await this.prisma.device.findMany({ orderBy: { publicId: 'asc' } });
     this.states = new Map(
@@ -135,6 +143,7 @@ export class SimService {
     for (const [deviceId, state] of this.states) {
       const { state: next, reading } = tickVehicle(state, {
         deltaSimHours,
+        randomSource: this.randomSource,
         consumptionParams: DEMO_CONSUMPTION_PARAMS,
       });
       this.states.set(deviceId, next);
