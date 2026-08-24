@@ -1,10 +1,12 @@
 const THREE_SEGMENT = /^([A-Za-z]+)-([A-Za-z0-9]+)-([A-Za-z0-9]+)$/;
 
 /**
- * Masks a device public id for non-admin roles, e.g. "DEV-0001-XC54" ->
- * "DEV-****-XC54". Keeps the prefix and suffix (useful for support/log
- * correlation) and hides only the sequence segment that identifies the
- * specific vehicle.
+ * Enmascara el publicId de un device para roles no-admin, ej: "DEV-0001-XC54"
+ * -> "DEV-****-XC54". Conserva prefijo y sufijo (útil para correlacionar en
+ * soporte/logs) y oculta solo el segmento de secuencia que identifica al
+ * vehículo específico. Requisito de privacidad de la prueba técnica: el
+ * enmascarado se aplica en servidor (MaskingInterceptor + rooms de WS), nunca
+ * en el cliente.
  */
 export function maskDeviceId(publicId: string): string {
   const match = THREE_SEGMENT.exec(publicId);

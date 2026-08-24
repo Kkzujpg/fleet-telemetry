@@ -1,5 +1,8 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 
+// Firma y verificación de JWT (HS256) implementadas a mano con node:crypto,
+// sin librerías externas (jsonwebtoken, @nestjs/jwt, passport) - requisito
+// no negociable de la prueba técnica.
 export class JwtError extends Error {}
 
 export class JwtMalformedError extends JwtError {}

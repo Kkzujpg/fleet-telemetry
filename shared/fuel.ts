@@ -19,19 +19,21 @@ export interface FuelAlertDecision {
   severity: FuelAlertSeverity | null;
 }
 
-/** Shared by alert evaluation and the devices list, so both read the same trailing window of readings. */
+/** Compartida por la evaluación de alertas y el listado de devices, para que ambos lean la misma ventana móvil de lecturas. */
 export const AUTONOMY_WINDOW_MS = 15 * 60_000;
 const WINDOW_MS = AUTONOMY_WINDOW_MS;
 const MIN_READINGS = 3;
 const REFUEL_JUMP_RATIO = 0.05;
-// A stopped/idling vehicle's odometer barely moves, so noise alone can tip
-// the regression slightly negative - this floor must sit well under any
-// plausible real consumption rate (realistic cars run ~0.05-0.10 L/km) so a
-// genuinely economical vehicle never gets misread as "stopped".
+// El odómetro de un vehículo detenido/en ralentí apenas se mueve, así que
+// solo el ruido puede inclinar la regresión levemente a negativo - este piso
+// debe quedar bien por debajo de cualquier consumo real plausible (autos
+// reales rondan ~0.05-0.10 L/km) para que un vehículo genuinamente económico
+// nunca se confunda con uno "detenido".
 const STOPPED_SLOPE_KM_THRESHOLD = -0.005;
-// Below this much distance in the window, the regression's x-spread is too
-// small to trust - GPS/odometer jitter while parked can otherwise produce a
-// wildly unstable (and often steep-looking) slope.
+// Por debajo de esta distancia en la ventana, la dispersión en x de la
+// regresión es demasiado pequeña para confiar en ella - el jitter de
+// GPS/odómetro estando estacionado puede producir una pendiente muy
+// inestable (y a menudo con apariencia pronunciada).
 const MIN_WINDOW_DISTANCE_KM = 0.3;
 export const ALERT_THRESHOLD_KM = 50;
 const ALERT_CRITICAL_KM = 15;
@@ -58,7 +60,7 @@ function leastSquaresSlope(points: { x: number; y: number }[]): number | null {
   return numerator / denominator;
 }
 
-/** Trailing-window slice of `sorted` readings, no older than WINDOW_MS behind the latest one. */
+/** Recorte de ventana móvil sobre `sorted`, sin lecturas más viejas que WINDOW_MS respecto a la última. */
 function windowReadings(sorted: FuelReading[]): FuelReading[] {
   if (sorted.length === 0) {
     return sorted;
@@ -67,7 +69,7 @@ function windowReadings(sorted: FuelReading[]): FuelReading[] {
   return sorted.filter((r) => r.timestamp >= latestTs - WINDOW_MS);
 }
 
-/** L/km burn rate (negative = consuming) from a least-squares fit of liters against odometer km. */
+/** Tasa de consumo en L/km (negativo = consumiendo), por regresión de mínimos cuadrados de litros contra km de odómetro. */
 export function consumptionRatePerKm(readings: FuelReading[]): number | null {
   if (readings.length < MIN_READINGS) {
     return null;
@@ -123,10 +125,12 @@ export function autonomyKm(
 }
 
 /**
- * Km of range left, from a device's fuel readings ordered oldest to newest.
- * Wraps detectRefuel + consumptionRatePerKm + autonomyKm so callers (alert
- * evaluation, the devices list) share one autonomy computation instead of
- * re-deriving it slightly differently each time.
+ * Km de autonomía restante, a partir de las lecturas de combustible de un
+ * device ordenadas de más antigua a más reciente. Envuelve detectRefuel +
+ * consumptionRatePerKm + autonomyKm para que los llamadores (evaluación de
+ * alertas, listado de devices) compartan un único cálculo de autonomía en
+ * vez de rederivarlo distinto cada vez. Esta función es el núcleo del
+ * cálculo predictivo de combustible pedido en la prueba técnica.
  */
 export function computeAutonomyKm(
   readingsAscending: FuelReading[],
@@ -143,10 +147,11 @@ export function computeAutonomyKm(
 }
 
 /**
- * Average km/h over the same post-refuel, trailing-window segment
- * computeAutonomyKm derives its slope from - used only to turn a km-based
- * autonomy figure into a `predictedEmptyAt` timestamp. Null if the vehicle
- * hasn't moved (no meaningful ETA without forward progress).
+ * Km/h promedio sobre el mismo segmento post-repostaje y ventana móvil del
+ * que computeAutonomyKm deriva su pendiente - se usa solo para convertir una
+ * autonomía en km a un timestamp `predictedEmptyAt` (para la alerta de
+ * "<1 hora de autonomía" pedida en la rúbrica). Null si el vehículo no se
+ * movió (sin avance no hay ETA con sentido).
  */
 export function estimateAvgSpeedKmh(
   readingsAscending: FuelReading[],
@@ -198,7 +203,7 @@ export function shouldAlert(state: FuelAlertState): FuelAlertDecision {
   return { fire: true, close: false, severity };
 }
 
-/** Percentage of tank full, clamped to [0, 100]. Non-positive capacity reads as empty. */
+/** Porcentaje de tanque lleno, acotado a [0, 100]. Capacidad no positiva se lee como vacío. */
 export function fuelLevelPct(
   fuelLiters: number,
   tankCapacityL: number,
@@ -214,7 +219,7 @@ export interface ConsumptionModelParams {
   noiseStdDevLph: number;
 }
 
-/** L/h consumed at `speedKph`, scaled linearly against a reference speed, plus noise. Never negative. */
+/** L/h consumidos a `speedKph`, escalado linealmente contra una velocidad de referencia, más ruido. Nunca negativo. */
 export function consumptionLitersPerHour(
   speedKph: number,
   params: ConsumptionModelParams,

@@ -21,7 +21,7 @@ function haversineKm(a: LatLng, b: LatLng): number {
   return 2 * EARTH_RADIUS_KM * Math.asin(Math.sqrt(h));
 }
 
-/** Length of the closed loop through `waypoints`, including the segment back to the start. */
+/** Longitud del circuito cerrado a través de `waypoints`, incluyendo el segmento de vuelta al inicio. */
 export function routeLengthKm(waypoints: LatLng[]): number {
   if (waypoints.length < 2) return 0;
 
@@ -33,8 +33,9 @@ export function routeLengthKm(waypoints: LatLng[]): number {
 }
 
 /**
- * Position after travelling `distanceKm` along the closed loop starting at
- * waypoints[0]. Distance wraps modulo the route length in both directions.
+ * Posición tras recorrer `distanceKm` a lo largo del circuito cerrado
+ * empezando en waypoints[0]. La distancia da la vuelta módulo el largo de
+ * la ruta en ambas direcciones.
  */
 export function positionAtDistance(waypoints: LatLng[], distanceKm: number): LatLng {
   if (waypoints.length === 1) return waypoints[0];

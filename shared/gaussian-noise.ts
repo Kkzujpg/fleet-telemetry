@@ -1,8 +1,9 @@
 export type RandomSource = () => number;
 
 /**
- * Box-Muller transform. `random` defaults to Math.random but is injectable
- * so callers (and tests) can get deterministic noise.
+ * Transformada de Box-Muller. `random` usa Math.random por defecto pero es
+ * inyectable para que los llamadores (y los tests) puedan obtener ruido
+ * determinístico.
  */
 export function gaussianNoise(
   mean: number,

@@ -1,7 +1,8 @@
-// Opaque cursor over an (orderKey, id) pair, base64url-encoded so it's
-// URL-safe as a query param. orderKey must be a value that never changes
-// after the row is created (e.g. createdAt), so a page boundary stays valid
-// even while unrelated columns on other rows keep changing underneath it.
+// Cursor opaco sobre un par (orderKey, id), codificado en base64url para que
+// sea seguro como query param en una URL. orderKey debe ser un valor que
+// nunca cambie después de crear la fila (ej: createdAt), así el límite de
+// una página sigue siendo válido aunque otras columnas de otras filas
+// cambien por debajo.
 export interface Cursor {
   orderKey: string;
   id: string;
@@ -18,18 +19,18 @@ export function decodeCursor(raw: string): Cursor {
   try {
     decoded = Buffer.from(raw, "base64url").toString("utf8");
   } catch {
-    throw new Error("invalid cursor: not valid base64url");
+    throw new Error("cursor inválido: base64url no válido");
   }
 
   const sepIndex = decoded.indexOf("|");
   if (sepIndex === -1) {
-    throw new Error("invalid cursor: missing separator");
+    throw new Error("cursor inválido: falta separador");
   }
 
   const orderKey = decoded.slice(0, sepIndex);
   const id = decoded.slice(sepIndex + 1);
   if (!orderKey || !id) {
-    throw new Error("invalid cursor: empty orderKey or id");
+    throw new Error("cursor inválido: orderKey o id vacío");
   }
 
   return { orderKey, id };
