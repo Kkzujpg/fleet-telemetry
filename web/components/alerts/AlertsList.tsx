@@ -30,7 +30,21 @@ export function AlertsList() {
   }, [apiFetch]);
 
   return (
-    <div style={{ padding: "28px 32px", maxWidth: 880, margin: "0 auto" }}>
+    <div className="alerts-list-root" style={{ padding: "28px 32px", maxWidth: 880, margin: "0 auto" }}>
+      <style jsx>{`
+        @media (max-width: 640px) {
+          .alerts-list-root {
+            padding: 16px 14px !important;
+          }
+          .alert-row {
+            flex-wrap: wrap !important;
+          }
+          .alert-row-actions {
+            width: 100%;
+            justify-content: flex-end;
+          }
+        }
+      `}</style>
       <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginBottom: 4 }}>
         <h1 style={{ fontSize: 22, fontWeight: 650, letterSpacing: "-0.01em", margin: 0 }}>Alertas</h1>
         <span className="tabular" style={{ fontSize: 13, color: "var(--text-tertiary)" }}>
@@ -76,6 +90,7 @@ export function AlertsList() {
             return (
               <div
                 key={alert.id}
+                className="alert-row"
                 style={{
                   display: "flex",
                   alignItems: "center",
@@ -145,6 +160,7 @@ export function AlertsList() {
 
                 {acked ? (
                   <span
+                    className="alert-row-actions"
                     style={{
                       display: "flex",
                       alignItems: "center",
@@ -160,6 +176,7 @@ export function AlertsList() {
                 ) : (
                   <button
                     type="button"
+                    className="alert-row-actions"
                     disabled={ackingId === alert.id}
                     onClick={() => acknowledge(alert.id)}
                     style={{

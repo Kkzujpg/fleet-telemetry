@@ -27,6 +27,7 @@ export function AlertsPanel({ devices }: { devices: DeviceListItem[] }) {
   // hay nada mal.
   return (
     <div
+      className="alerts-panel-root"
       style={{
         display: "flex",
         alignItems: "center",
@@ -37,6 +38,13 @@ export function AlertsPanel({ devices }: { devices: DeviceListItem[] }) {
         flexShrink: 0,
       }}
     >
+      <style jsx>{`
+        @media (max-width: 640px) {
+          .alerts-panel-chips {
+            display: none !important;
+          }
+        }
+      `}</style>
       <span
         style={{
           fontSize: 12,
@@ -65,7 +73,7 @@ export function AlertsPanel({ devices }: { devices: DeviceListItem[] }) {
         <span style={{ fontSize: 12.5, color: "var(--text-tertiary)" }}>Sin alertas — toda la flota en orden</span>
       )}
 
-      <div style={{ display: "flex", gap: 8, overflowX: "auto" }}>
+      <div className="alerts-panel-chips" style={{ display: "flex", gap: 8, overflowX: "auto" }}>
         {active.map((alert) => {
           const tokens = severityTokens(alert.severity);
           return (

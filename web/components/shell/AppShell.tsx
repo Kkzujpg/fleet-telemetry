@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession } from "../../lib/session/session-context";
@@ -41,12 +42,47 @@ function NavLink({ href, label }: { href: string; label: string }) {
 }
 
 export function AppShell({ children }: { children: React.ReactNode }) {
-  const { user, logout } = useSession();
+  const { user, logout, apiFetch } = useSession();
   const { isOnline } = useOffline();
+  const [simLoading, setSimLoading] = useState(false);
+
+  async function startSim() {
+    setSimLoading(true);
+    try {
+      await apiFetch("/sim/start", { method: "POST" });
+    } finally {
+      setSimLoading(false);
+    }
+  }
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100vh", background: "var(--bg)" }}>
+      <style jsx>{`
+        @media (max-width: 640px) {
+          .app-header {
+            flex-wrap: wrap;
+            height: auto !important;
+            padding: 10px 12px !important;
+            row-gap: 8px;
+            gap: 10px;
+          }
+          .app-header-brand-label {
+            display: none;
+          }
+          .app-header-user-email {
+            display: none;
+          }
+          .app-header-nav {
+            order: 3;
+            width: 100%;
+          }
+          .app-header-actions {
+            order: 2;
+          }
+        }
+      `}</style>
       <header
+        className="app-header"
         style={{
           display: "flex",
           alignItems: "center",
@@ -61,15 +97,20 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       >
         <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
           <LogoMark />
-          <strong style={{ fontSize: 14.5, fontWeight: 650, letterSpacing: "-0.01em" }}>Fleet Telemetry</strong>
+          <strong className="app-header-brand-label" style={{ fontSize: 14.5, fontWeight: 650, letterSpacing: "-0.01em" }}>
+            Fleet Telemetry
+          </strong>
         </div>
 
-        <nav style={{ display: "flex", gap: 24 }}>
+        <nav className="app-header-nav" style={{ display: "flex", gap: 24 }}>
           <NavLink href="/" label="Flota" />
           {user?.role === "ADMIN" && <NavLink href="/alerts" label="Alertas" />}
         </nav>
 
-        <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 14 }}>
+        <div
+          className="app-header-actions"
+          style={{ marginLeft: "auto", display: "flex", alignItems: "center", flexWrap: "wrap", justifyContent: "flex-end", gap: 14 }}
+        >
           {!isOnline && (
             <span
               style={{
@@ -91,7 +132,29 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               Sin conexión
             </span>
           )}
-          <span style={{ fontSize: 12.5, color: "var(--text-secondary)" }}>{user?.email}</span>
+          {user?.role === "ADMIN" && (
+            <button
+              type="button"
+              onClick={startSim}
+              disabled={simLoading}
+              style={{
+                fontSize: 12.5,
+                fontWeight: 600,
+                color: "#fff",
+                background: "var(--status-online)",
+                border: "none",
+                borderRadius: "var(--radius-sm)",
+                padding: "6px 12px",
+                opacity: simLoading ? 0.6 : 1,
+                cursor: simLoading ? "default" : "pointer",
+              }}
+            >
+              {simLoading ? "Iniciando…" : "Iniciar simulación"}
+            </button>
+          )}
+          <span className="app-header-user-email" style={{ fontSize: 12.5, color: "var(--text-secondary)" }}>
+            {user?.email}
+          </span>
           <button
             type="button"
             onClick={() => logout()}
