@@ -26,9 +26,10 @@ export interface RefreshResult {
 
 @Injectable()
 export class AuthService {
-  // Precomputed once so an unknown email still pays a real scrypt cost with
-  // the same N/r/p as a genuine hash - never a cheap early return that would
-  // let response timing reveal which emails are registered.
+  // Precalculado una vez para que un email desconocido igual pague el costo
+  // real de scrypt con el mismo N/r/p que un hash genuino - nunca un retorno
+  // temprano barato que dejaría que el timing de la respuesta revele qué
+  // emails están registrados.
   private readonly dummyHash: Promise<string> = hashPassword(randomBytes(32).toString('hex'));
 
   constructor(

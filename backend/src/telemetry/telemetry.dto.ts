@@ -44,7 +44,7 @@ function requireDate(value: unknown, field: string): Date {
   return date;
 }
 
-/** `now` is injectable so tests don't race the clock-skew check against wall-clock time. */
+/** `now` es inyectable para que los tests no compitan contra el reloj real en el chequeo de clock-skew. */
 export function parseIngestPayload(body: unknown, now: Date = new Date()): IngestTelemetryPayload {
   if (typeof body !== 'object' || body === null) {
     throw new BadRequestException('body must be an object');
@@ -75,7 +75,7 @@ export function parseIngestPayload(body: unknown, now: Date = new Date()): Inges
   };
 }
 
-/** Only checks the envelope (array, size); each item is parsed individually so one bad row doesn't fail the batch. */
+/** Solo valida el sobre (array, tamaño); cada item se parsea individualmente para que una fila mala no reviente todo el batch. */
 export function parseBatchEnvelope(body: unknown): unknown[] {
   if (!Array.isArray(body)) {
     throw new BadRequestException('body must be an array of readings');

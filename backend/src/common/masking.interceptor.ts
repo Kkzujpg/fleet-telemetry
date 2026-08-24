@@ -6,12 +6,12 @@ import { maskDeviceId } from '../../../shared/mask';
 const ADMIN_ROLE = 'ADMIN';
 
 /**
- * Global response interceptor: masks every `publicId` field for any
- * non-ADMIN caller, walking arrays and nested objects so a new endpoint
- * can never forget to mask it by hand.
+ * Interceptor global de respuesta: enmascara todo campo `publicId` para
+ * cualquier caller no-ADMIN, recorriendo arrays y objetos anidados para que
+ * un endpoint nuevo nunca se olvide de enmascararlo a mano.
  *
- * Only covers the HTTP request/response cycle - see the WS gateway, which
- * emits over the socket directly and never runs through this pipeline.
+ * Solo cubre el ciclo request/response de HTTP - ver el WS gateway, que
+ * emite directo por el socket y nunca pasa por este pipeline.
  */
 @Injectable()
 export class MaskingInterceptor implements NestInterceptor {

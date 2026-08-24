@@ -101,8 +101,8 @@ describe('AlertsService.evaluate', () => {
   test('fires and persists a LOW_FUEL alert once autonomy drops under threshold, storing predictedEmptyAt/distanceRemainingKm, then broadcasts', async () => {
     const { service, prisma, gateway } = buildService();
     const t0 = new Date('2026-08-23T12:00:00.000Z').getTime();
-    // 5km every 5min (60km/h), fuel 5L->4.5L->4L: slope -0.1 L/km, 4L left
-    // -> 40km autonomy, under the 50km WARNING threshold.
+    // 5km cada 5min (60km/h), combustible 5L->4.5L->4L: pendiente -0.1 L/km,
+    // con 4L restantes -> 40km de autonomía, bajo el umbral WARNING de 50km.
     const latest = readingRow('r2', new Date(t0 + 10 * MIN), 4, 110);
     const history = [
       readingRow('r0', new Date(t0), 5, 100),

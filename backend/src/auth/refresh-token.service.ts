@@ -36,7 +36,7 @@ export class RefreshTokenService {
     return { raw, id: record.id };
   }
 
-  /** Verifies and rotates a refresh token. A reused (already-rotated) token revokes its whole family. */
+  /** Verifica y rota un refresh token. Un token reusado (ya rotado) revoca toda su familia. */
   async rotate(rawToken: string): Promise<RotatedRefreshToken> {
     const record = await this.prisma.refreshToken.findUnique({
       where: { tokenHash: hashRefreshToken(rawToken) },

@@ -1,7 +1,8 @@
 import { LatLng } from '../../../shared/route';
 
-// Approximate loops around several Colombian cities, used only to give the
-// simulator something plausible to drive along - not surveyed street data.
+// Circuitos aproximados en varias ciudades colombianas, solo para darle al
+// simulador algo plausible por donde recorrer - no son datos de calles
+// relevados.
 export const COLOMBIA_ROUTES: LatLng[][] = [
   // Bogotá - Norte: Autopista Norte <-> Av. Boyacá, entre Calle 100 y Calle 170
   [

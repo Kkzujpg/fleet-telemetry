@@ -38,8 +38,9 @@ export interface ReconcileQuery {
 export interface ReconcileReading {
   id: string;
   deviceId: string;
-  // Nested (not a flat `devicePublicId`) so MaskingInterceptor's plain
-  // `key === 'publicId'` walk catches it like every other publicId in the API.
+  // Anidado (no un `devicePublicId` plano) para que el recorrido simple de
+  // MaskingInterceptor (`key === 'publicId'`) lo capture igual que cualquier
+  // otro publicId de la API.
   device: { publicId: string };
   recordedAt: string;
   lat: number;
@@ -81,9 +82,10 @@ export class TelemetryService {
       return { reading: existing, alert: null, duplicate: true };
     }
 
-    // fuelLiters is derived here, never trusted from the client: if it were
-    // client-computed, correcting a mis-registered tankCapacityL later would
-    // silently corrupt every past reading's stored liters.
+    // fuelLiters se deriva acá, nunca se confía en el valor del cliente: si
+    // viniera calculado por el cliente, corregir más tarde un tankCapacityL
+    // mal registrado corrompería en silencio los litros guardados de cada
+    // lectura pasada.
     const fuelLiters = (payload.fuelLevelPct / 100) * device.tankCapacityL;
 
     let reading: TelemetryReading;

@@ -178,10 +178,11 @@ describe('TelemetryService.ingest', () => {
     expect(result).toEqual({ reading: existing, alert: null, duplicate: true });
   });
 
-  // Fuel-trend fire/dedupe/close logic lives in AlertsService (and is
-  // covered by test/alerts/alerts.service.spec.ts): TelemetryService only
-  // delegates to it after persisting the reading, and never re-derives the
-  // fuel math itself.
+  // La lógica de disparo/dedupe/cierre según la tendencia de combustible
+  // vive en AlertsService (y está cubierta por
+  // test/alerts/alerts.service.spec.ts): TelemetryService solo delega ahí
+  // después de persistir la lectura, y nunca rederiva la matemática de
+  // combustible por su cuenta.
   test('delegates alert evaluation to AlertsService.evaluate(deviceId) and forwards its result', async () => {
     const { service, prisma, alerts } = buildService();
     const fakeAlert = {

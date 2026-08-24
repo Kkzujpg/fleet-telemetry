@@ -84,8 +84,9 @@ async function seedDeviceHistory(index: number, vehicle: (typeof VEHICLES)[numbe
     const { state: next, reading } = tickVehicle(state, { deltaSimHours });
     state = next;
 
-    // At least one refuel inside the history window, so detectRefuel() has
-    // something real to split on and the regression isn't a flat decline.
+    // Al menos un repostaje dentro de la ventana de historial, para que
+    // detectRefuel() tenga algo real donde cortar y la regresión no sea un
+    // declive plano.
     if (r === REFUEL_AT_READING_INDEX) {
       state.fuelLiters = Math.min(vehicle.tankCapacityL, state.fuelLiters + REFUEL_LITERS);
     }

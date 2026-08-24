@@ -21,8 +21,8 @@ function baseState(overrides: Partial<VehicleSimState> = {}): VehicleSimState {
   };
 }
 
-// A random source that always returns 0.5: gaussianNoise(mean, std, r) with
-// u=v=0.5 collapses to mean + std * sqrt(-2*ln(0.5))*cos(pi) = mean - std*1.1774.
+// Una fuente aleatoria que siempre devuelve 0.5: gaussianNoise(mean, std, r)
+// con u=v=0.5 colapsa a mean + std * sqrt(-2*ln(0.5))*cos(pi) = mean - std*1.1774.
 const NEUTRAL_RANDOM = () => 0.5;
 
 describe('tickVehicle', () => {

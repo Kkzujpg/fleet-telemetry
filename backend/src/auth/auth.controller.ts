@@ -7,8 +7,8 @@ import { parseCookieHeader } from './cookie.util';
 const REFRESH_COOKIE_NAME = 'refreshToken';
 const REFRESH_COOKIE_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 
-// Minimal shapes for what we need from express - avoids depending on
-// @types/express (not installed), matching the rest of this codebase.
+// Formas mínimas de lo que necesitamos de express - evita depender de
+// @types/express (no instalado), en línea con el resto de este codebase.
 interface CookieCapableResponse {
   cookie(name: string, value: string, options: Record<string, unknown>): void;
   clearCookie(name: string, options: Record<string, unknown>): void;
@@ -90,13 +90,14 @@ export class AuthController {
     return this.auth.me(req.user.sub);
   }
 
-  // Mobile has no browser cookie jar to carry an httpOnly refresh cookie, so
-  // this family transports the refresh token in the JSON body instead. It
-  // deliberately never reads the `refreshToken` cookie the web flow above
-  // sets - if it did, a client-controlled signal (a header, a path) would let
-  // an XSS on the web app call it and read out a cookie it can't access
-  // directly, defeating httpOnly. Same underlying AuthService, different
-  // transport only.
+  // Mobile no tiene cookie jar de navegador para llevar una refresh cookie
+  // httpOnly, así que esta familia de endpoints transporta el refresh token
+  // en el body JSON en su lugar. Deliberadamente nunca lee la cookie
+  // `refreshToken` que el flujo web de arriba setea - si lo hiciera, una
+  // señal controlada por el cliente (un header, un path) permitiría que un
+  // XSS en la web app la invoque y lea una cookie a la que no puede acceder
+  // directamente, anulando el httpOnly. Mismo AuthService subyacente, solo
+  // cambia el transporte.
   @Public()
   @Post('mobile/login')
   @HttpCode(HttpStatus.OK)

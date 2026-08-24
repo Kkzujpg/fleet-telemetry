@@ -100,7 +100,7 @@ describe('RefreshTokenService', () => {
 
     await expect(service.rotate(first.raw)).rejects.toThrow(UnauthorizedException);
 
-    // the descendant issued by the legitimate rotation must also be dead now
+    // el descendiente emitido por la rotación legítima también debe estar muerto ahora
     expect(rows.get(second.issued.id)!.revokedAt).not.toBeNull();
     await expect(service.rotate(second.issued.raw)).rejects.toThrow(UnauthorizedException);
   });

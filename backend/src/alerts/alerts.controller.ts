@@ -16,8 +16,8 @@ import { RolesGuard } from '../auth/roles.guard';
 import { AlertsService, AlertView, ListAlertsResult } from './alerts.service';
 import { parseCursorQuery, parseListAlertsQuery } from './alerts.dto';
 
-// Minimal shape we need from express.Response - avoids depending on
-// @types/express (not installed) just to set a dynamic status code.
+// Forma mínima que necesitamos de express.Response - evita depender de
+// @types/express (no instalado) solo para setear un status code dinámico.
 interface StatusSettableResponse {
   status(code: number): void;
 }

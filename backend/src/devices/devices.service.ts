@@ -176,9 +176,9 @@ export class DevicesService {
       throw new NotFoundException(`device not found: ${deviceId}`);
     }
 
-    // date_bin() runs the downsampling in Postgres: pulling every raw row to
-    // Node and averaging there would ship the whole range over the wire for
-    // every history request.
+    // date_bin() hace el downsampling en Postgres: traer cada fila cruda a
+    // Node y promediar ahí enviaría todo el rango por cable en cada request
+    // de historial.
     const intervalLiteral = `${query.bucketSeconds} seconds`;
     const rows = await this.prisma.$queryRaw<RawHistoryRow[]>`
       SELECT

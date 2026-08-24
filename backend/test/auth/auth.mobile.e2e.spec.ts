@@ -5,11 +5,12 @@ import { AppModule } from '../../src/app.module';
 import { PrismaService } from '../../src/prisma/prisma.service';
 import { hashPassword } from '../../../shared/password';
 
-// Mobile has no browser cookie jar, so this flow returns the refresh token in
-// the JSON body instead of a Set-Cookie header. It is a deliberately separate
-// endpoint family (never reads the `refreshToken` cookie) so that an XSS on
-// the web app cannot call it to exfiltrate a session established via the
-// httpOnly cookie - see auth.controller.ts for the mobile handlers.
+// Mobile no tiene cookie jar de navegador, así que este flujo devuelve el
+// refresh token en el body JSON en vez de un header Set-Cookie. Es una
+// familia de endpoints deliberadamente separada (nunca lee la cookie
+// `refreshToken`) para que un XSS en la web app no pueda invocarla para
+// exfiltrar una sesión establecida vía la cookie httpOnly - ver
+// auth.controller.ts para los handlers de mobile.
 describe('Auth mobile (e2e)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
@@ -116,8 +117,8 @@ describe('Auth mobile (e2e)', () => {
   test('the web cookie-based /auth/refresh endpoint ignores a refresh token passed in the body', async () => {
     const mobile = await mobileLogin();
 
-    // No `cookie` header sent - only a (spoofed) body field, mimicking what an
-    // XSS on the web app could control. It must not be honoured.
+    // No se envía header `cookie` - solo un campo del body (falsificado),
+    // imitando lo que un XSS en la web app podría controlar. No debe respetarse.
     const res = await fetch(`${baseUrl}/api/v1/auth/refresh`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },

@@ -30,7 +30,7 @@ export interface VehicleSimTickResult {
 export interface TickParams {
   deltaSimHours: number;
   randomSource?: RandomSource;
-  /** Defaults to CONSUMPTION_PARAMS (realistic rate, used by history seeding). SimService overrides it for a demo-speed drain. */
+  /** Por defecto usa CONSUMPTION_PARAMS (tasa realista, usada por el seed de historial). SimService la sobreescribe para un drenaje a velocidad de demo. */
   consumptionParams?: ConsumptionModelParams;
 }
 
@@ -50,15 +50,16 @@ function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
 }
 
-/** Advances one vehicle by `deltaSimHours` of simulated time. Pure given `randomSource`. */
+/** Avanza un vehículo `deltaSimHours` de tiempo simulado. Pura dado `randomSource`. */
 export function tickVehicle(
   state: VehicleSimState,
   { deltaSimHours, randomSource = Math.random, consumptionParams = CONSUMPTION_PARAMS }: TickParams,
 ): VehicleSimTickResult {
-  // Already empty at the start of this tick: stay parked instead of moving
-  // on nothing. Running dry mid-tick still lets that tick's distance through
-  // (settles on the next tick) - splitting a tick at the exact empty point
-  // isn't worth the complexity for a simulator.
+  // Ya está vacío al inicio de este tick: se queda estacionado en vez de
+  // moverse con nada. Quedarse sin combustible a mitad de tick igual deja
+  // pasar la distancia de ese tick (se ajusta en el siguiente) - dividir un
+  // tick en el punto exacto donde se vacía no vale la complejidad para un
+  // simulador.
   const outOfFuel = state.fuelLiters <= 0;
 
   const speedKph = outOfFuel

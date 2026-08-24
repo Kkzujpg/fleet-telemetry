@@ -59,8 +59,8 @@ function buildService(): { service: DevicesService; prisma: Mocks } {
 describe('DevicesService.list', () => {
   test('maps the latest reading and derives connectivity status', async () => {
     const { service } = buildService();
-    // 30s after lastSeenAt - inside ONLINE_THRESHOLD_MS (2min) regardless of
-    // when the test actually runs.
+    // 30s después de lastSeenAt - dentro de ONLINE_THRESHOLD_MS (2min) sin
+    // importar cuándo corra realmente el test.
     const now = new Date(DEVICE.lastSeenAt.getTime() + 30_000);
 
     const result = await service.list({ limit: 20 }, now);

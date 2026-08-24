@@ -22,9 +22,10 @@ import { LOGIN_MAX_ATTEMPTS, LOGIN_RATE_LIMITER, LOGIN_WINDOW_MS } from './login
     },
     RefreshTokenService,
     AuthService,
-    // Global by default: any endpoint added later is protected unless it opts
-    // out with @Public(). JwtAuthGuard must run before RolesGuard so
-    // request.user is populated when role checks happen.
+    // Global por defecto: cualquier endpoint agregado después queda protegido
+    // salvo que use @Public() para excluirse. JwtAuthGuard debe correr antes
+    // que RolesGuard para que request.user esté poblado cuando se evalúan
+    // los roles.
     { provide: APP_GUARD, useClass: JwtAuthGuard },
     { provide: APP_GUARD, useClass: RolesGuard },
   ],

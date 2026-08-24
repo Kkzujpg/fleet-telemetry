@@ -23,8 +23,8 @@ import {
 } from './telemetry.service';
 import { parseBatchEnvelope, parseIngestPayload } from './telemetry.dto';
 
-// Minimal shape we need from express.Response - avoids depending on
-// @types/express (not installed) just to set a dynamic status code.
+// Forma mínima que necesitamos de express.Response - evita depender de
+// @types/express (no instalado) solo para setear un status code dinámico.
 interface StatusSettableResponse {
   status(code: number): void;
 }
@@ -33,9 +33,9 @@ interface StatusSettableResponse {
 export class TelemetryController {
   constructor(private readonly telemetry: TelemetryService) {}
 
-  // Devices ingest telemetry without a user session - no JWT auth exists for
-  // them yet, so these two stay open by design (unlike the rest of the API,
-  // which is protected by default).
+  // Los devices ingieren telemetría sin sesión de usuario - todavía no existe
+  // auth JWT para ellos, así que estos dos endpoints quedan abiertos a
+  // propósito (a diferencia del resto de la API, protegida por defecto).
   @Public()
   @Post()
   async ingest(

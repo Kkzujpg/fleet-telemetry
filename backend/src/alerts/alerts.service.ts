@@ -59,9 +59,10 @@ function toAlertView(alert: Alert): AlertView {
 
 @Injectable()
 export class AlertsService {
-  // Alert dedupe/close state per device. Not persisted: the schema has no
-  // "resolved" field, so a restart just means the next fire starts a fresh
-  // dedupe window instead of resuming one - acceptable for this pipeline.
+  // Estado de dedupe/cierre de alerta por device. No se persiste: el schema
+  // no tiene campo "resolved", así que un reinicio solo hace que el próximo
+  // disparo arranque una ventana de dedupe nueva en vez de reanudar una -
+  // aceptable para este pipeline.
   private readonly alertState = new Map<string, DeviceAlertState>();
 
   constructor(
@@ -70,11 +71,13 @@ export class AlertsService {
   ) {}
 
   /**
-   * Loads the trailing 15-minute window for `deviceId`, hands it to the pure
-   * decision functions in shared/fuel.ts, and persists+broadcasts the result.
-   * Called by TelemetryService right after a reading is persisted - this is
-   * the only place that owns alert state, so it never re-derives the fuel
-   * math itself.
+   * Carga la ventana móvil de 15 minutos de `deviceId`, se la pasa a las
+   * funciones puras de decisión de shared/fuel.ts, y persiste+difunde el
+   * resultado. Se llama desde TelemetryService justo después de persistir
+   * una lectura - este es el único lugar dueño del estado de alerta, así que
+   * nunca rederiva la matemática de combustible por su cuenta. Esta función
+   * implementa el requisito de "alerta si el nivel baja a <1 hora de
+   * autonomía" (ver predictedEmptyAt más abajo).
    */
   async evaluate(deviceId: string): Promise<Alert | null> {
     const device = await this.prisma.device.findUnique({ where: { id: deviceId } });
@@ -122,9 +125,10 @@ export class AlertsService {
 
     this.alertState.set(deviceId, { alertActive: true, lastAlertAt: latest.recordedAt.getTime() });
 
-    // predictedEmptyAt is a secondary, informational ETA - km is the primary
-    // metric, this just reprojects it into a timestamp using the same
-    // window's average speed. Null (not moving) means no sensible ETA.
+    // predictedEmptyAt es un ETA secundario, informativo - km es la métrica
+    // primaria, esto solo la reproyecta a un timestamp usando la velocidad
+    // promedio de la misma ventana. Null (sin movimiento) significa que no
+    // hay ETA con sentido.
     const avgSpeedKmh = estimateAvgSpeedKmh(fuelReadings, device.tankCapacityL);
     const predictedEmptyAt =
       autonomyKm === null || avgSpeedKmh === null || avgSpeedKmh <= 0
@@ -194,10 +198,11 @@ export class AlertsService {
   }
 
   /**
-   * Resolves an ack with a single conditional UPDATE (`WHERE acknowledgedAt
-   * IS NULL`) rather than a read-then-write: two admins racing on the same
-   * alert can only ever have one UPDATE affect a row, so there is no window
-   * where both reads see it unacknowledged and both writes "succeed".
+   * Resuelve un ack con un único UPDATE condicional (`WHERE acknowledgedAt
+   * IS NULL`) en vez de leer-y-luego-escribir: dos admins compitiendo por la
+   * misma alerta solo pueden lograr que un UPDATE afecte la fila, así que no
+   * hay ventana donde ambas lecturas la vean sin reconocer y ambas
+   * escrituras "tengan éxito".
    */
   async acknowledge(alertId: string, userId: string, idempotencyKey?: string): Promise<AckResult> {
     const updated = await this.prisma.alert.updateMany({
@@ -219,8 +224,8 @@ export class AlertsService {
       throw new NotFoundException(`alert not found: ${alertId}`);
     }
 
-    // Same client retrying its own winning ack (e.g. after a dropped
-    // response): replay the success instead of a spurious 409.
+    // El mismo cliente reintentando su propio ack ganador (ej: tras una
+    // respuesta perdida): repite el éxito en vez de un 409 espurio.
     if (idempotencyKey && existing.ackIdempotencyKey === idempotencyKey) {
       return { status: 'ok', alert: toAlertView(existing) };
     }

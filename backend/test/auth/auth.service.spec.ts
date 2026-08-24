@@ -72,7 +72,7 @@ describe('AuthService.login', () => {
     await expect(service.login(USER.email, 'wrong password', '5.6.7.8')).rejects.toThrow();
     const wrongPasswordMs = Number(process.hrtime.bigint() - start2) / 1e6;
 
-    // both branches run a real scrypt derivation; neither should be a near-instant early exit
+    // ambas ramas corren una derivación scrypt real; ninguna debería ser una salida temprana casi instantánea
     expect(unknownMs).toBeGreaterThan(1);
     expect(wrongPasswordMs).toBeGreaterThan(1);
   });

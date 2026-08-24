@@ -38,6 +38,10 @@ export class TelemetryGateway implements OnGatewayConnection, OnGatewayDisconnec
 
   constructor(private readonly accessTokens: AccessTokenService) {}
 
+  // Valida el access token (mismo AccessTokenService que el HTTP) en el
+  // handshake del socket - sin esto la conexión WS quedaría sin autenticar.
+  // Los ADMIN se unen a ADMIN_ROOM para recibir broadcastAlert; el resto solo
+  // ve lo que llega a los rooms por-device a los que se suscriben.
   handleConnection(socket: AuthenticatedSocket): void {
     const token = socket.handshake.auth?.token;
 

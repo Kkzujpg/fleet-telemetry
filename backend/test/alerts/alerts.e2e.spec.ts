@@ -35,9 +35,10 @@ describe('Alerts (e2e)', () => {
     });
     deviceId = device.id;
 
-    // Alert.acknowledgedBy has a real FK to User.id, so the ack tests need
-    // real rows to point at - a bare JWT sub with no backing row would
-    // trip the FK constraint on the conditional UPDATE.
+    // Alert.acknowledgedBy tiene una FK real a User.id, así que los tests de
+    // ack necesitan filas reales a las cuales apuntar - un sub de JWT
+    // desnudo sin fila de respaldo dispararía la restricción de FK en el
+    // UPDATE condicional.
     const adminA = await prisma.user.create({
       data: { email: `alerts-e2e-a-${Date.now()}@fleet.demo`, passwordHash: 'x', role: 'ADMIN' },
     });
@@ -108,10 +109,11 @@ describe('Alerts (e2e)', () => {
     const active = await createAlert();
     const acked = await createAlert({ acknowledgedAt: new Date() });
 
-    // The default page (limit=20, oldest first) can't be trusted to contain
-    // a just-created alert once the shared dev DB has accumulated more than
-    // a page of active alerts from other runs - walk every page instead of
-    // assuming page 1.
+    // No se puede confiar en que la página por defecto (limit=20, más
+    // antigua primero) contenga una alerta recién creada una vez que la DB
+    // de dev compartida acumuló más de una página de alertas activas de
+    // otras corridas - se recorren todas las páginas en vez de asumir la
+    // página 1.
     const ids = new Set<string>();
     let cursor: string | undefined;
     do {

@@ -7,26 +7,27 @@ import { ConsumptionModelParams } from '../../../shared/fuel';
 const TICK_MS = 3000;
 const SIM_MINUTES_PER_TICK = 2;
 const DRAIN_FUEL_RATIO = 0.03;
-// The lead cap below locks the sim clock to 1x (wall-clock) speed within a
-// few ticks - staying near real time is required for both the ingest future
-// -skew check and the device online/stale status (shared/device-status.ts),
-// so we can't compensate by running the clock faster. Instead the live loop
-// burns fuel much faster than a real engine would, so a full tank still hits
-// a LOW_FUEL alert within a few minutes of watching the dashboard. History
-// seeding (backend/prisma/seed.ts) does NOT use this - it calls tickVehicle
-// with the realistic default so the 6h backfill still looks like a plausible
-// trip.
+// El tope de adelanto de abajo fija el reloj del simulador a velocidad 1x
+// (tiempo real) a los pocos ticks - mantenerse cerca del tiempo real es
+// necesario tanto para el chequeo de clock-skew futuro del ingest como para
+// el estado online/stale del device (shared/device-status.ts), así que no se
+// puede compensar acelerando el reloj. En su lugar, el loop en vivo quema
+// combustible mucho más rápido que un motor real, para que un tanque lleno
+// igual dispare una alerta LOW_FUEL a los pocos minutos de mirar el
+// dashboard. El seed de historial (backend/prisma/seed.ts) NO usa esto -
+// llama a tickVehicle con el valor realista por defecto para que el backfill
+// de 6h siga pareciendo un viaje plausible.
 const DEMO_CONSUMPTION_PARAMS: ConsumptionModelParams = {
   baseRateLph: 300,
   refSpeedKph: 60,
   noiseStdDevLph: 0.6,
 };
-// Ingest rejects any recordedAt more than 5min ahead of wall-clock (see
-// FUTURE_CLOCK_SKEW_MS in telemetry.dto.ts). At 2 sim-minutes per 3s tick the
-// sim clock would blow past that in ~3 ticks and every reading after would be
-// silently rejected forever (fetch resolving with a non-ok status isn't
-// treated as an error here). Staying under it with margin keeps every tick
-// landing.
+// El ingest rechaza cualquier recordedAt más de 5min adelantado al reloj
+// real (ver FUTURE_CLOCK_SKEW_MS en telemetry.dto.ts). A 2 minutos-sim por
+// tick de 3s el reloj del simulador se pasaría de eso en ~3 ticks y cada
+// lectura después quedaría rechazada en silencio para siempre (un fetch que
+// resuelve con status no-ok no se trata acá como error). Quedarse por debajo
+// con margen asegura que cada tick se registre.
 const MAX_LEAD_MS = 4 * 60_000;
 
 export interface SimStatus {
@@ -39,11 +40,12 @@ export class SimService {
   private readonly logger = new Logger(SimService.name);
   private timer: ReturnType<typeof setInterval> | null = null;
   private states = new Map<string, VehicleSimState>();
-  // Simulated time, not wall-clock time: ticks compress SIM_MINUTES_PER_TICK
-  // of driving into TICK_MS of real time. recordedAt must follow this clock -
-  // stamping ticks with real Date.now() would make the fuel regression see
-  // e.g. "2 minutes worth of fuel burned in 3 seconds" and read as an
-  // absurd, alert-triggering consumption rate.
+  // Tiempo simulado, no tiempo real: cada tick comprime SIM_MINUTES_PER_TICK
+  // de manejo en TICK_MS de tiempo real. recordedAt debe seguir este reloj -
+  // sellar los ticks con Date.now() real haría que la regresión de
+  // combustible viera, por ejemplo, "2 minutos de combustible quemados en 3
+  // segundos" y lo leyera como una tasa de consumo absurda que dispara
+  // alertas.
   private clockMs = 0;
 
   constructor(private readonly prisma: PrismaService) {}
@@ -70,11 +72,12 @@ export class SimService {
               tankCapacityL: device.tankCapacityL,
               route: routeForIndex(index),
               progressKm: 0,
-              // Every start() call is a fresh run, not a resume - refill the
-              // tank instead of picking up from wherever the last run left
-              // it (often near-empty, since the demo consumption rate is
-              // tuned to drain fast). Odometer still carries over so mileage
-              // stays continuous across restarts.
+              // Cada llamada a start() es una corrida nueva, no una
+              // reanudación - se rellena el tanque en vez de continuar donde
+              // quedó la corrida anterior (a menudo casi vacío, ya que la
+              // tasa de consumo de demo está ajustada para drenar rápido).
+              // El odómetro sí se mantiene, así que el kilometraje sigue
+              // siendo continuo entre reinicios.
               fuelLiters: device.tankCapacityL,
               odometerKm: latest?.odometerKm ?? 0,
             } satisfies VehicleSimState,
@@ -100,7 +103,7 @@ export class SimService {
     return this.status();
   }
 
-  /** `devicePublicId` because the client (an admin operator) only ever knows the public identifier. */
+  /** `devicePublicId` porque el cliente (un operador admin) solo conoce el identificador público. */
   drain(devicePublicId: string): SimStatus {
     const entry = [...this.states.values()].find((state) => state.publicId === devicePublicId);
     if (!entry) {
@@ -117,11 +120,12 @@ export class SimService {
   }
 
   private async tickAll(): Promise<void> {
-    // Once the clock has run up against the lead cap, this shrinks toward the
-    // pace of real time instead of the usual 2 sim-minutes - both the
-    // timestamp and the physics below advance by the same (possibly smaller)
-    // amount, so fuel/distance burned always matches the gap between
-    // readings and never reads as an anomalous consumption rate.
+    // Una vez que el reloj choca contra el tope de adelanto, esto se reduce
+    // hacia el ritmo del tiempo real en vez de los 2 minutos-sim habituales -
+    // tanto el timestamp como la física de abajo avanzan por la misma
+    // cantidad (posiblemente menor), así que el combustible/distancia
+    // quemados siempre coinciden con el hueco entre lecturas y nunca se leen
+    // como una tasa de consumo anómala.
     const desiredClockMs = this.clockMs + SIM_MINUTES_PER_TICK * 60_000;
     const cappedClockMs = Math.min(desiredClockMs, Date.now() + MAX_LEAD_MS);
     const deltaSimHours = (cappedClockMs - this.clockMs) / 3_600_000;

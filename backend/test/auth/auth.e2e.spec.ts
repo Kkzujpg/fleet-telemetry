@@ -5,11 +5,11 @@ import { AppModule } from '../../src/app.module';
 import { PrismaService } from '../../src/prisma/prisma.service';
 import { hashPassword } from '../../../shared/password';
 
-// This suite exercises the real HTTP layer (guards, cookies, rate limiting,
-// refresh rotation) end to end against a real Postgres instance, following
-// this repo's existing e2e convention (native fetch + an ephemeral
-// app.listen(0) instance) rather than pulling in supertest as a new
-// dependency.
+// Esta suite ejercita la capa HTTP real (guards, cookies, rate limiting,
+// rotación de refresh) de punta a punta contra una instancia real de
+// Postgres, siguiendo la convención de e2e ya existente en este repo (fetch
+// nativo + una instancia efímera de app.listen(0)) en vez de sumar
+// supertest como nueva dependencia.
 describe('Auth (e2e)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
@@ -141,14 +141,14 @@ describe('Auth (e2e)', () => {
     expect(rotatedCookie).toBeTruthy();
     expect(rotatedCookie).not.toBe(originalCookie);
 
-    // reusing the now-stale original cookie must be rejected...
+    // reusar la cookie original ya obsoleta debe ser rechazado...
     const reuse = await fetch(`${baseUrl}/api/v1/auth/refresh`, {
       method: 'POST',
       headers: { cookie: `refreshToken=${originalCookie}` },
     });
     expect(reuse.status).toBe(401);
 
-    // ...and must have burned the legitimate descendant too (family revoke)
+    // ...y también debe haber quemado al descendiente legítimo (revocación de familia)
     const afterReuse = await fetch(`${baseUrl}/api/v1/auth/refresh`, {
       method: 'POST',
       headers: { cookie: `refreshToken=${rotatedCookie}` },

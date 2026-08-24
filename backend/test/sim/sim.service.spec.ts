@@ -66,7 +66,7 @@ describe('SimService', () => {
 
     service.drain('DEV-0001-AA11');
 
-    // fetch is only called on tick, so we advance one tick and inspect the body.
+    // fetch solo se llama en cada tick, así que avanzamos un tick e inspeccionamos el body.
     await jest.advanceTimersByTimeAsync(3000);
 
     const call = (global.fetch as jest.Mock).mock.calls.find(
@@ -110,12 +110,13 @@ describe('SimService', () => {
     await jest.advanceTimersByTimeAsync(3000);
 
     const body = JSON.parse((global.fetch as jest.Mock).mock.calls[0][1].body as string);
-    // Every start() is a fresh run, not a resume - fuel should start from a
-    // full 60L tank, not continue from wherever the last run left it (12.5L),
-    // so one tick's burn still leaves it well above the old continued value.
+    // Cada start() es una corrida nueva, no una reanudación - el combustible
+    // debe arrancar de un tanque lleno de 60L, no continuar donde dejó la
+    // corrida anterior (12.5L), así que el consumo de un tick igual lo deja
+    // bastante por encima del viejo valor continuado.
     expect(body.fuelLiters).toBeGreaterThan(30);
     expect(body.fuelLiters).toBeLessThanOrEqual(60);
-    // Mileage still carries over across restarts.
+    // El kilometraje sí se mantiene entre reinicios.
     expect(body.odometerKm).toBeGreaterThan(4321);
   });
 
@@ -123,7 +124,7 @@ describe('SimService', () => {
     const { service } = buildService();
     await service.start();
 
-    // 200 ticks * 3s = 10 minutes of wall-clock time (jest fake timers).
+    // 200 ticks * 3s = 10 minutos de tiempo real (fake timers de jest).
     for (let i = 0; i < 200; i++) {
       await jest.advanceTimersByTimeAsync(3000);
     }
@@ -134,9 +135,9 @@ describe('SimService', () => {
       .find(([, init]) => JSON.parse(init.body as string).devicePublicId === 'DEV-0001-AA11');
     const body = JSON.parse(lastForDeviceOne[1].body as string);
 
-    // Started at a full 60L tank; demo consumption rate must have burned it
-    // down close to empty well within the 10-minute window, not left it
-    // barely dented like the realistic seed rate would.
+    // Arrancó con un tanque lleno de 60L; la tasa de consumo de demo debe
+    // haberlo quemado hasta cerca de vacío bien dentro de la ventana de 10
+    // minutos, no dejarlo apenas mellado como haría la tasa realista del seed.
     expect(body.fuelLiters).toBeLessThan(10);
   });
 
@@ -151,7 +152,7 @@ describe('SimService', () => {
     const second = JSON.parse((global.fetch as jest.Mock).mock.calls[2][1].body as string);
 
     const deltaMs = new Date(second.recordedAt).getTime() - new Date(first.recordedAt).getTime();
-    // 2 simulated minutes per tick, regardless of the 3-second real interval between ticks.
+    // 2 minutos simulados por tick, sin importar el intervalo real de 3 segundos entre ticks.
     expect(deltaMs).toBe(2 * 60_000);
   });
 
@@ -159,8 +160,8 @@ describe('SimService', () => {
     const { service } = buildService();
     await service.start();
 
-    // 20 ticks at 2 simulated minutes each would be 40 minutes ahead of
-    // wall-clock if left uncapped - real (fake) time only advances 60s here.
+    // 20 ticks de 2 minutos simulados cada uno estarían 40 minutos adelantados
+    // al tiempo real si no tuvieran tope - el tiempo real (fake) acá solo avanza 60s.
     for (let i = 0; i < 20; i++) {
       await jest.advanceTimersByTimeAsync(3000);
     }
