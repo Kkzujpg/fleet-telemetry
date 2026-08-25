@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession } from "../../lib/session/session-context";
@@ -45,11 +45,24 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const { user, logout, apiFetch } = useSession();
   const { isOnline } = useOffline();
   const [simLoading, setSimLoading] = useState(false);
+  const [simRunning, setSimRunning] = useState(false);
 
-  async function startSim() {
+  useEffect(() => {
+    if (user?.role !== "ADMIN") return;
+    apiFetch<{ running: boolean }>("/sim/status")
+      .then((status) => setSimRunning(status.running))
+      .catch(() => {
+        // Backend offline al montar - el botón parte en "Iniciar simulación" por defecto.
+      });
+  }, [user?.role, apiFetch]);
+
+  async function toggleSim() {
     setSimLoading(true);
     try {
-      await apiFetch("/sim/start", { method: "POST" });
+      const status = await apiFetch<{ running: boolean }>(simRunning ? "/sim/stop" : "/sim/start", {
+        method: "POST",
+      });
+      setSimRunning(status.running);
     } finally {
       setSimLoading(false);
     }
@@ -135,13 +148,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           {user?.role === "ADMIN" && (
             <button
               type="button"
-              onClick={startSim}
+              onClick={toggleSim}
               disabled={simLoading}
               style={{
                 fontSize: 12.5,
                 fontWeight: 600,
                 color: "#fff",
-                background: "var(--status-online)",
+                background: simRunning ? "var(--status-offline)" : "var(--status-online)",
                 border: "none",
                 borderRadius: "var(--radius-sm)",
                 padding: "6px 12px",
@@ -149,7 +162,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 cursor: simLoading ? "default" : "pointer",
               }}
             >
-              {simLoading ? "Iniciando…" : "Iniciar simulación"}
+              {simLoading
+                ? simRunning
+                  ? "Deteniendo…"
+                  : "Iniciando…"
+                : simRunning
+                  ? "Detener simulación"
+                  : "Iniciar simulación"}
             </button>
           )}
           <span className="app-header-user-email" style={{ fontSize: 12.5, color: "var(--text-secondary)" }}>

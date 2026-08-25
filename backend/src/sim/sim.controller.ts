@@ -1,4 +1,4 @@
-import { Controller, Param, Post, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { Roles } from '../auth/roles.decorator';
 import { RolesGuard } from '../auth/roles.guard';
@@ -11,6 +11,11 @@ import { SimService, SimStatus } from './sim.service';
 @BlockInProduction()
 export class SimController {
   constructor(private readonly sim: SimService) {}
+
+  @Get('status')
+  status(): SimStatus {
+    return this.sim.status();
+  }
 
   @Post('start')
   start(): Promise<SimStatus> {
