@@ -69,3 +69,6 @@ cd mobile  && npm test
 - [DESIGN.md](DESIGN.md) — elección de stack y trade-offs técnicos.
 - [SETUP.md](SETUP.md) — guía de despliegue local, variables de entorno, credenciales de seed, flujo de demo.
 - [CLAUDE.md](CLAUDE.md) — guía de arquitectura para agentes/contribuidores.
+
+## Links
+- Video sustentación: https://youtu.be/dA8WE-6ETjA
